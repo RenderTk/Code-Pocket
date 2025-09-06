@@ -1,3 +1,4 @@
+import 'package:code_pocket/providers/codes_provider.dart';
 import 'package:code_pocket/providers/selected_code_type_provider.dart';
 import 'package:code_pocket/screens/code_preview_screen/code_preview_screen.dart';
 import 'package:code_pocket/screens/create_code_screen/widgets/code_types_buttons.dart';
@@ -21,8 +22,8 @@ class _CreateCodeScreenState extends ConsumerState<CreateCodeScreen> {
   @override
   void dispose() {
     super.dispose();
-    // _titleController.dispose();
-    // _dataController.dispose();
+    _titleController.dispose();
+    _dataController.dispose();
   }
 
   @override
@@ -67,13 +68,31 @@ class _CreateCodeScreenState extends ConsumerState<CreateCodeScreen> {
                 autocorrect: false,
                 hintText: hintTextFieldName,
                 cursorColor: Theme.of(context).colorScheme.primary,
+                material: (context, platform) => MaterialTextFormFieldData(
+                  cursorColor: Theme.of(context).colorScheme.primary,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                cupertino: (context, platform) => CupertinoTextFormFieldData(
+                  cursorColor: Theme.of(context).colorScheme.primary,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      width: 1,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter a name';
                   }
-                  // if (ref.read(codesProvider.notifier).exists(value.trim())) {
-                  //   return 'A ${selectedCodeType == CodeType.qrCode ? 'QR Code' : 'Bar Code'} with this title already exists';
-                  // }
+                  if (ref.read(codesProvider.notifier).exists(value.trim())) {
+                    return 'A ${selectedCodeType == CodeType.qrCode ? 'QR Code' : 'Bar Code'} with this title already exists';
+                  }
                   return null;
                 },
               ),
@@ -91,6 +110,25 @@ class _CreateCodeScreenState extends ConsumerState<CreateCodeScreen> {
                 minLines: 5,
                 maxLines: 10,
                 cursorColor: Theme.of(context).colorScheme.primary,
+                keyboardType: TextInputType.multiline,
+                material: (context, platform) => MaterialTextFormFieldData(
+                  cursorColor: Theme.of(context).colorScheme.primary,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                cupertino: (context, platform) => CupertinoTextFormFieldData(
+                  cursorColor: Theme.of(context).colorScheme.primary,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      width: 1,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter a URL, text or data';

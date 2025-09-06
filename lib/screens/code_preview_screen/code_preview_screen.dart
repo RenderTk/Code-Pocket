@@ -31,24 +31,22 @@ Future<void> _onSaveCode(
   if (ref.read(codesProvider).hasError) {
     notifier.clearError();
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
+      SnackbarHelper.showCustomSnackbar(
+        context: context,
+        message:
             "Error saving ${code.codeType == CodeType.qrCode ? "QR code" : "Barcode"}!",
-          ),
-        ),
+        type: SnackbarType.error,
       );
     }
     return;
   }
 
   if (context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
+    SnackbarHelper.showCustomSnackbar(
+      context: context,
+      message:
           "${code.codeType == CodeType.qrCode ? "QR code" : "Barcode"} saved!",
-        ),
-      ),
+      type: SnackbarType.success,
     );
     Navigator.pop(context, true);
   }
@@ -117,10 +115,12 @@ class CodePreviewScreen extends ConsumerStatefulWidget {
     required this.codeType,
     required this.title,
     required this.data,
+    this.readOnly = false,
   });
   final CodeType codeType;
   final String title;
   final String data;
+  final bool readOnly;
 
   @override
   ConsumerState<CodePreviewScreen> createState() => _CodePreviewScreenState();
@@ -142,13 +142,6 @@ class _CodePreviewScreenState extends ConsumerState<CodePreviewScreen> {
         title: widget.codeType == CodeType.qrCode
             ? PlatformText('QR Code Preview')
             : PlatformText('Bar Code Preview'),
-        actions: [
-          PlatformIconButton(
-            icon: Icon(PlatformIcons(context).share),
-            onPressed: () async =>
-                _onShareCode(context, _controller, title: widget.title),
-          ),
-        ],
       ),
       body: Center(
         child: Padding(
@@ -187,71 +180,123 @@ class _CodePreviewScreenState extends ConsumerState<CodePreviewScreen> {
                   ),
                 ),
               const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  // COPY BUTTON
-                  Expanded(
-                    child: PlatformElevatedButton(
-                      onPressed: () {
-                        Clipboard.setData(ClipboardData(text: widget.data));
-                        SnackbarHelper.showCustomSnackbar(
-                          context: context,
-                          message: "Copied to clipboard!",
-                          type: SnackbarType.info,
-                        );
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(FontAwesomeIcons.copy, size: 16),
-                          const SizedBox(width: 8),
-                          PlatformText('Copy'),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
 
-                  // SAVE BUTTON
-                  Expanded(
-                    child: PlatformElevatedButton(
-                      onPressed: () async {
-                        final code = _createCodeData(
-                          widget.title,
-                          widget.data,
-                          widget.codeType,
-                        );
-                        await _onSaveCode(context, ref, code);
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(FontAwesomeIcons.floppyDisk, size: 16),
-                          const SizedBox(width: 8),
-                          PlatformText('Save'),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // CREATE ANOTHER QR/BARCODE
-              PlatformElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context, true);
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              if (!widget.readOnly) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.max,
                   children: [
-                    const Icon(FontAwesomeIcons.plus, size: 16),
-                    const SizedBox(width: 8),
-                    PlatformText('Create Another'),
+                    // COPY BUTTON
+                    Expanded(
+                      child: PlatformElevatedButton(
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: widget.data));
+                          SnackbarHelper.showCustomSnackbar(
+                            context: context,
+                            message: "Copied to clipboard!",
+                            type: SnackbarType.info,
+                          );
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(FontAwesomeIcons.copy, size: 16),
+                            const SizedBox(width: 8),
+                            PlatformText('Copy'),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // SAVE BUTTON
+                    Expanded(
+                      child: PlatformElevatedButton(
+                        onPressed: () async {
+                          final code = _createCodeData(
+                            widget.title,
+                            widget.data,
+                            widget.codeType,
+                          );
+                          await _onSaveCode(context, ref, code);
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(FontAwesomeIcons.floppyDisk, size: 16),
+                            const SizedBox(width: 8),
+                            PlatformText('Save'),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 16),
+                // SHARE BUTTON
+                PlatformElevatedButton(
+                  onPressed: () async =>
+                      _onShareCode(context, _controller, title: widget.title),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(FontAwesomeIcons.share, size: 16),
+                      const SizedBox(width: 8),
+                      PlatformText('Share'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // CREATE ANOTHER QR/BARCODE
+                PlatformElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context, true);
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(FontAwesomeIcons.plus, size: 16),
+                      const SizedBox(width: 8),
+                      PlatformText('Create Another'),
+                    ],
+                  ),
+                ),
+              ],
+
+              if (widget.readOnly) ...[
+                // SHARE BUTTON
+                PlatformElevatedButton(
+                  onPressed: () async =>
+                      _onShareCode(context, _controller, title: widget.title),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(FontAwesomeIcons.share, size: 16),
+                      const SizedBox(width: 8),
+                      PlatformText('Share'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                PlatformElevatedButton(
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: widget.data));
+                    SnackbarHelper.showCustomSnackbar(
+                      context: context,
+                      message: "Copied to clipboard!",
+                      type: SnackbarType.info,
+                    );
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(FontAwesomeIcons.copy, size: 16),
+                      const SizedBox(width: 8),
+                      PlatformText('Copy'),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),
