@@ -53,6 +53,18 @@ class CodesNotifier extends AsyncNotifier<List<CodeData>> {
     });
   }
 
+  Future<void> deleteAllCodes() async {
+    state = const AsyncValue.loading();
+
+    state = await AsyncValue.guard(() async {
+      //update state on sqlite
+      await _dbService.deleteAllCodes();
+
+      //update state on provider
+      return <CodeData>[];
+    });
+  }
+
   bool exists(String title) {
     final codes = state.value ?? [];
     return codes.any((code) => code.title == title);

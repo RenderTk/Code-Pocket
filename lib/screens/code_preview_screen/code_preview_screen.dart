@@ -15,10 +15,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:widgets_to_image/widgets_to_image.dart';
 
-CodeData _createCodeData(String title, String data, CodeType codeType) {
-  return CodeData(title: title, data: data, codeType: CodeType.qrCode);
-}
-
 Future<void> _onSaveCode(
   BuildContext context,
   WidgetRef ref,
@@ -213,10 +209,10 @@ class _CodePreviewScreenState extends ConsumerState<CodePreviewScreen> {
                     Expanded(
                       child: PlatformElevatedButton(
                         onPressed: () async {
-                          final code = _createCodeData(
-                            widget.title,
-                            widget.data,
-                            widget.codeType,
+                          final code = CodeData(
+                            title: widget.title,
+                            data: widget.data,
+                            codeType: widget.codeType,
                           );
                           await _onSaveCode(context, ref, code);
                         },

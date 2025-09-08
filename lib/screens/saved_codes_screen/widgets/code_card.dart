@@ -1,5 +1,4 @@
 import 'package:code_pocket/models/code_data.dart';
-import 'package:code_pocket/providers/codes_provider.dart';
 import 'package:code_pocket/providers/selected_code_type_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
@@ -9,9 +8,15 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:barcode_widget/barcode_widget.dart';
 
 class CodeCard extends ConsumerWidget {
-  const CodeCard({super.key, required this.codeData, required this.onTap});
+  const CodeCard({
+    super.key,
+    required this.codeData,
+    required this.onTap,
+    required this.onDelete,
+  });
   final CodeData codeData;
   final VoidCallback onTap;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -65,7 +70,7 @@ class CodeCard extends ConsumerWidget {
                       children: [
                         PlatformText(
                           codeData.title,
-                          style: theme.textTheme.titleMedium?.copyWith(
+                          style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                             color: colorScheme.onSurface,
                           ),
@@ -73,42 +78,38 @@ class CodeCard extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
-                        PlatformText(
-                          codeData.codeType == CodeType.qrCode
-                              ? 'QR Code'
-                              : 'Barcode',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        Row(
+                          children: [
+                            PlatformText(
+                              codeData.codeType == CodeType.qrCode
+                                  ? 'QR Code'
+                                  : 'Barcode',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            PlatformText(
+                              _formatDate(codeData.createdAt ?? DateTime.now()),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
                   // Date and delete button
-                  Row(
-                    children: [
-                      PlatformText(
-                        _formatDate(codeData.createdAt ?? DateTime.now()),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: Icon(
-                          Icons.delete_outline,
-                          color: colorScheme.error,
-                          size: 22,
-                        ),
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () {
-                          ref
-                              .read(codesProvider.notifier)
-                              .deleteCode(codeData.id!);
-                        },
-                      ),
-                    ],
+                  IconButton(
+                    icon: Icon(
+                      Icons.delete_outline,
+                      color: colorScheme.error,
+                      size: 25,
+                    ),
+                    visualDensity: VisualDensity.compact,
+                    onPressed: onDelete,
                   ),
                 ],
               ),
