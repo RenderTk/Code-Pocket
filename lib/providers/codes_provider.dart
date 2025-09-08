@@ -39,18 +39,17 @@ class CodesNotifier extends AsyncNotifier<List<CodeData>> {
   }
 
   Future<void> deleteCode(int id) async {
-    state = const AsyncValue.loading();
+    // optimistic update
+    final codes = _makeDeepCopy()..removeWhere((code) => code.id == id);
+    state = AsyncValue.data(codes);
 
-    final codes = _makeDeepCopy();
-
-    state = await AsyncValue.guard(() async {
-      //update state on sqlite
+    try {
+      // delete from DB in background
       await _dbService.deleteCode(id);
-
-      //update state on provider
-      codes.removeWhere((code) => code.id == id);
-      return codes;
-    });
+    } catch (e, st) {
+      // rollback if DB fails
+      state = AsyncValue.error(e, st);
+    }
   }
 
   Future<void> deleteAllCodes() async {
