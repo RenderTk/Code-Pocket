@@ -147,6 +147,8 @@ class _CreateCodeScreenState extends ConsumerState<CreateCodeScreen> {
                   },
                 ),
                 const SizedBox(height: 25),
+
+                // Generate Button
                 SizedBox(
                   width: double.infinity,
                   height: 80,
@@ -155,6 +157,11 @@ class _CreateCodeScreenState extends ConsumerState<CreateCodeScreen> {
                       if (!_formKey.currentState!.validate()) {
                         return;
                       }
+
+                      // Close the keyboard
+                      FocusScope.of(context).unfocus();
+
+                      // Navigate to the code preview screen
                       final result = await Navigator.push<bool>(
                         context,
                         MaterialPageRoute(
