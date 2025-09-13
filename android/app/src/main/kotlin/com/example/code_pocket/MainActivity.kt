@@ -1,4 +1,4 @@
-package com.example.code_pocket
+package com.tropix.codePocket
 
 import io.flutter.embedding.android.FlutterActivity
 
