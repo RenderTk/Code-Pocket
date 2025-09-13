@@ -20,7 +20,7 @@ class _ScanCodeScreenState extends State<ScanCodeScreen>
   bool isTorchOn = false;
   bool isCameraFront = false;
   late AnimationController _animationController;
-  final MobileScannerController controller = MobileScannerController(
+  final MobileScannerController camaraController = MobileScannerController(
     detectionSpeed: DetectionSpeed.unrestricted,
   );
   final player = AudioPlayer();
@@ -36,14 +36,14 @@ class _ScanCodeScreenState extends State<ScanCodeScreen>
 
   @override
   void dispose() {
-    controller.dispose();
+    camaraController.dispose();
     _animationController.dispose();
     super.dispose();
   }
 
   void _onScanResult(BarcodeCapture barcodeCapture) {
     if (isScanning) {
-      controller.stop();
+      camaraController.stop();
       setState(() => isScanning = false);
     }
 
@@ -73,7 +73,44 @@ class _ScanCodeScreenState extends State<ScanCodeScreen>
               children: [
                 Expanded(
                   child: MobileScanner(
-                    controller: controller,
+                    controller: camaraController,
+                    errorBuilder: (context, error) {
+                      String message = error.errorCode.message;
+
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              PlatformIcons(context).error,
+                              color: Colors.redAccent,
+                              size: 48,
+                            ),
+                            const SizedBox(height: 16),
+                            PlatformText(
+                              'Scanner Unavailable',
+                              style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(
+                                    color: Colors.redAccent,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24.0,
+                              ),
+                              child: PlatformText(
+                                message,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                     overlayBuilder: (context, constraints) {
                       final scanArea = Size(
                         constraints.maxWidth * 0.85,
@@ -100,7 +137,7 @@ class _ScanCodeScreenState extends State<ScanCodeScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     IconButton(
-                      onPressed: () => controller.toggleTorch(),
+                      onPressed: () => camaraController.toggleTorch(),
                       icon: Icon(isTorchOn ? Icons.flash_on : Icons.flash_off),
                     ),
 
@@ -113,7 +150,7 @@ class _ScanCodeScreenState extends State<ScanCodeScreen>
                     ),
 
                     IconButton(
-                      onPressed: () => controller.switchCamera(),
+                      onPressed: () => camaraController.switchCamera(),
                       icon: Icon(
                         isCameraFront ? Icons.camera_front : Icons.camera_rear,
                       ),
@@ -151,13 +188,15 @@ class _ScanCodeScreenState extends State<ScanCodeScreen>
                   width: 300,
                   child: PlatformText(
                     textAlign: TextAlign.center,
-                    "Position your code within the camara frame. The app will automatically detect it and scan it.",
+                    "Position your code within the camara framer. The app will automatically detect it and scan it.",
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ),
                 const SizedBox(height: 20),
                 PlatformElevatedButton(
-                  onPressed: () => setState(() => isScanning = !isScanning),
+                  onPressed: () async {
+                    setState(() => isScanning = !isScanning);
+                  },
                   child: PlatformText(
                     isScanning ? "Stop scanning" : "Start scanning",
                   ),
