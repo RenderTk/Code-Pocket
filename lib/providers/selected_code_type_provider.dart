@@ -1,3 +1,4 @@
+import 'package:code_pocket/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,24 +7,44 @@ enum CodeType { qrCode, barCode }
 enum SavedCodeFilter { all, qrCode, barCode }
 
 extension CodeTypePresentation on CodeType {
-  String get label => switch (this) {
-    CodeType.qrCode => 'QR Code',
-    CodeType.barCode => 'Barcode',
+  String label(AppLocalizations l10n) => switch (this) {
+    CodeType.qrCode => l10n.qrCode,
+    CodeType.barCode => l10n.barcode,
   };
 
-  String get titleHint => switch (this) {
-    CodeType.qrCode => 'Example: Event invitation',
-    CodeType.barCode => 'Example: Inventory label',
+  String titleHint(AppLocalizations l10n) => switch (this) {
+    CodeType.qrCode => l10n.qrTitleHint,
+    CodeType.barCode => l10n.barcodeTitleHint,
   };
 
-  String get dataHint => switch (this) {
-    CodeType.qrCode => 'Paste a link, message, or any text',
-    CodeType.barCode => 'Enter the value to encode',
+  String dataHint(AppLocalizations l10n) => switch (this) {
+    CodeType.qrCode => l10n.qrDataHint,
+    CodeType.barCode => l10n.barcodeDataHint,
   };
 
-  String get generateLabel => switch (this) {
-    CodeType.qrCode => 'Generate QR code',
-    CodeType.barCode => 'Generate barcode',
+  String generateLabel(AppLocalizations l10n) => switch (this) {
+    CodeType.qrCode => l10n.generateQrCode,
+    CodeType.barCode => l10n.generateBarcode,
+  };
+
+  String nameRequiredError(AppLocalizations l10n) => switch (this) {
+    CodeType.qrCode => l10n.qrNameRequired,
+    CodeType.barCode => l10n.barcodeNameRequired,
+  };
+
+  String tooLongError(AppLocalizations l10n) => switch (this) {
+    CodeType.qrCode => l10n.qrTooLong(maxLength),
+    CodeType.barCode => l10n.barcodeTooLong(maxLength),
+  };
+
+  String detectedMessage(AppLocalizations l10n) => switch (this) {
+    CodeType.qrCode => l10n.qrDetected,
+    CodeType.barCode => l10n.barcodeDetected,
+  };
+
+  String scannedShareTitle(AppLocalizations l10n) => switch (this) {
+    CodeType.qrCode => l10n.scannedQrShareTitle,
+    CodeType.barCode => l10n.scannedBarcodeShareTitle,
   };
 
   int get maxLength => switch (this) {
@@ -38,10 +59,10 @@ extension CodeTypePresentation on CodeType {
 }
 
 extension SavedCodeFilterPresentation on SavedCodeFilter {
-  String get label => switch (this) {
-    SavedCodeFilter.all => 'All',
-    SavedCodeFilter.qrCode => 'QR codes',
-    SavedCodeFilter.barCode => 'Barcodes',
+  String label(AppLocalizations l10n) => switch (this) {
+    SavedCodeFilter.all => l10n.all,
+    SavedCodeFilter.qrCode => l10n.qrCodes,
+    SavedCodeFilter.barCode => l10n.barcodes,
   };
 
   bool includes(CodeType type) => switch (this) {

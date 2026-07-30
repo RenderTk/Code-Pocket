@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:code_pocket/l10n/l10n.dart';
 import 'package:code_pocket/providers/active_screen_provider.dart';
 import 'package:code_pocket/providers/selected_code_type_provider.dart';
 import 'package:code_pocket/screens/scan_code_screen/widgets/scan_overlay.dart';
@@ -145,6 +146,7 @@ class _ScanCodeScreenState extends ConsumerState<ScanCodeScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return SafeArea(
       top: false,
@@ -162,10 +164,9 @@ class _ScanCodeScreenState extends ConsumerState<ScanCodeScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const AppPageHeader(
-                  title: 'Scan a code',
-                  description:
-                      'Align any QR code or barcode inside the frame. Detection is automatic.',
+                AppPageHeader(
+                  title: l10n.scanCodeTitle,
+                  description: l10n.scanCodeDescription,
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Expanded(
@@ -215,6 +216,7 @@ class _ScannerViewport extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Stack(
       fit: StackFit.expand,
@@ -289,7 +291,7 @@ class _ScannerViewport extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppRadii.control),
                   ),
                   child: Text(
-                    isPaused ? 'Scanner paused' : 'Hold steady',
+                    isPaused ? l10n.scannerPaused : l10n.holdSteady,
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: const Color(0xFFF0F3F7),
                     ),
@@ -322,6 +324,7 @@ class _CameraControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final isTorchOn = state.torchState == TorchState.on;
 
     return Container(
@@ -337,20 +340,20 @@ class _CameraControls extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _CameraControl(
-            tooltip: isTorchOn ? 'Turn flashlight off' : 'Turn flashlight on',
+            tooltip: isTorchOn ? l10n.turnFlashlightOff : l10n.turnFlashlightOn,
             icon: isTorchOn
                 ? Icons.flashlight_on_rounded
                 : Icons.flashlight_off_rounded,
             onPressed: onToggleTorch,
           ),
           _CameraControl(
-            tooltip: isPaused ? 'Resume scanner' : 'Pause scanner',
+            tooltip: isPaused ? l10n.resumeScanner : l10n.pauseScanner,
             icon: isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded,
             isPrimary: true,
             onPressed: onTogglePaused,
           ),
           _CameraControl(
-            tooltip: 'Switch camera',
+            tooltip: l10n.switchCamera,
             icon: state.cameraDirection == CameraFacing.front
                 ? Icons.camera_front_rounded
                 : Icons.cameraswitch_rounded,
@@ -403,6 +406,7 @@ class _CameraLoadingState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return ColoredBox(
       color: const Color(0xFF090D12),
@@ -417,7 +421,7 @@ class _CameraLoadingState extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
-              'Starting camera',
+              l10n.startingCamera,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: const Color(0xFFF0F3F7),
               ),
@@ -438,6 +442,7 @@ class _ScannerErrorState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final isPermissionDenied =
         error.errorCode == MobileScannerErrorCode.permissionDenied;
 
@@ -457,8 +462,8 @@ class _ScannerErrorState extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               Text(
                 isPermissionDenied
-                    ? 'Camera access is off'
-                    : 'Camera unavailable',
+                    ? l10n.cameraAccessOff
+                    : l10n.cameraUnavailable,
                 style: theme.textTheme.titleLarge?.copyWith(
                   color: const Color(0xFFF0F3F7),
                 ),
@@ -467,8 +472,8 @@ class _ScannerErrorState extends StatelessWidget {
               const SizedBox(height: AppSpacing.xs),
               Text(
                 isPermissionDenied
-                    ? 'Allow camera access in device settings, then try again.'
-                    : 'Check that a camera is available, then try again.',
+                    ? l10n.cameraPermissionHelp
+                    : l10n.cameraUnavailableHelp,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: const Color(0xFFAAB3C0),
                 ),
@@ -478,7 +483,7 @@ class _ScannerErrorState extends StatelessWidget {
               FilledButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Try again'),
+                label: Text(l10n.tryAgain),
               ),
             ],
           ),

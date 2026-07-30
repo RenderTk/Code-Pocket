@@ -1,14 +1,15 @@
+import 'package:code_pocket/l10n/l10n.dart';
 import 'package:code_pocket/models/code_data.dart';
 import 'package:code_pocket/providers/codes_provider.dart';
 import 'package:code_pocket/providers/selected_code_type_provider.dart';
 import 'package:code_pocket/screens/saved_codes_screen/saved_codes_screen.dart';
 import 'package:code_pocket/screens/saved_codes_screen/widgets/code_card.dart';
-import 'package:code_pocket/themes/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../support/fake_codes_store.dart';
+import '../support/localized_test_app.dart';
 
 void main() {
   final codes = [
@@ -62,10 +63,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [dbServiceProvider.overrideWithValue(store)],
-        child: MaterialApp(
-          theme: AppTheme.light,
-          home: const Scaffold(body: SavedCodesScreen()),
-        ),
+        child: const LocalizedTestApp(home: Scaffold(body: SavedCodesScreen())),
       ),
     );
     await tester.pumpAndSettle();
@@ -95,10 +93,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [dbServiceProvider.overrideWithValue(store)],
-        child: MaterialApp(
-          theme: AppTheme.light,
-          home: const Scaffold(body: SavedCodesScreen()),
-        ),
+        child: const LocalizedTestApp(home: Scaffold(body: SavedCodesScreen())),
       ),
     );
     await tester.pumpAndSettle();
@@ -114,10 +109,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [dbServiceProvider.overrideWithValue(store)],
-        child: MaterialApp(
-          theme: AppTheme.light,
-          home: const Scaffold(body: SavedCodesScreen()),
-        ),
+        child: const LocalizedTestApp(home: Scaffold(body: SavedCodesScreen())),
       ),
     );
     await tester.pumpAndSettle();
@@ -146,15 +138,33 @@ void main() {
 
   test('saved dates have readable relative and calendar labels', () {
     final now = DateTime(2026, 7, 30, 12);
-    expect(formatSavedCodeDate(null, now: now), 'Saved');
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    expect(formatSavedCodeDate(null, l10n, now: now), 'Saved');
     expect(
-      formatSavedCodeDate(DateTime(2026, 7, 30, 11, 30), now: now),
+      formatSavedCodeDate(DateTime(2026, 7, 30, 11, 30), l10n, now: now),
       '30 min ago',
     );
     expect(
-      formatSavedCodeDate(DateTime(2026, 7, 29, 12), now: now),
+      formatSavedCodeDate(DateTime(2026, 7, 29, 12), l10n, now: now),
       'Yesterday',
     );
-    expect(formatSavedCodeDate(DateTime(2026, 7, 1), now: now), '01/07/2026');
+    expect(
+      formatSavedCodeDate(DateTime(2026, 7, 1), l10n, now: now),
+      '7/1/2026',
+    );
+  });
+
+  test('saved dates use Spanish relative labels', () {
+    final now = DateTime(2026, 7, 30, 12);
+    final l10n = lookupAppLocalizations(const Locale('es'));
+
+    expect(
+      formatSavedCodeDate(DateTime(2026, 7, 30, 11, 30), l10n, now: now),
+      'Hace 30 min',
+    );
+    expect(
+      formatSavedCodeDate(DateTime(2026, 7, 29, 12), l10n, now: now),
+      'Ayer',
+    );
   });
 }

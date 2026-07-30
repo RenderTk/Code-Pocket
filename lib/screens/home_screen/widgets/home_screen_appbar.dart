@@ -1,3 +1,4 @@
+import 'package:code_pocket/l10n/l10n.dart';
 import 'package:code_pocket/providers/active_screen_provider.dart';
 import 'package:code_pocket/providers/codes_provider.dart';
 import 'package:code_pocket/themes/app_theme.dart';
@@ -11,6 +12,7 @@ class HomeScreenAppbar extends ConsumerWidget implements PreferredSizeWidget {
   const HomeScreenAppbar({super.key});
 
   Future<void> _handleDeleteAll(BuildContext context, WidgetRef ref) async {
+    final l10n = context.l10n;
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => const _DeleteAllDialog(),
@@ -22,18 +24,19 @@ class HomeScreenAppbar extends ConsumerWidget implements PreferredSizeWidget {
       if (!context.mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Library cleared')));
+      ).showSnackBar(SnackBar(content: Text(l10n.libraryCleared)));
     } catch (_) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not clear the library')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.libraryClearFailed)));
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final activeScreen = ref.watch(activeScreenProvider);
     final codes = ref.watch(codesProvider).valueOrNull ?? const [];
     final isLibrary = activeScreen == ActiveScreen.savedCodes;
@@ -47,7 +50,7 @@ class HomeScreenAppbar extends ConsumerWidget implements PreferredSizeWidget {
           const AppLogo(size: 38),
           const SizedBox(width: AppSpacing.sm),
           Text(
-            'Code Pocket',
+            l10n.appName,
             style: theme.textTheme.titleLarge?.copyWith(letterSpacing: -0.35),
           ),
         ],
@@ -55,21 +58,21 @@ class HomeScreenAppbar extends ConsumerWidget implements PreferredSizeWidget {
       actions: [
         if (isLibrary)
           PopupMenuButton<_LibraryAction>(
-            tooltip: 'Library options',
+            tooltip: l10n.libraryOptions,
             enabled: codes.isNotEmpty,
             onSelected: (action) {
               if (action == _LibraryAction.deleteAll) {
                 _handleDeleteAll(context, ref);
               }
             },
-            itemBuilder: (context) => const [
+            itemBuilder: (context) => [
               PopupMenuItem(
                 value: _LibraryAction.deleteAll,
                 child: Row(
                   children: [
-                    Icon(Icons.delete_sweep_outlined),
-                    SizedBox(width: AppSpacing.sm),
-                    Text('Delete all'),
+                    const Icon(Icons.delete_sweep_outlined),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(l10n.deleteAll),
                   ],
                 ),
               ),
@@ -90,17 +93,16 @@ class _DeleteAllDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return AlertDialog(
       icon: Icon(Icons.delete_sweep_outlined, color: theme.colorScheme.error),
-      title: const Text('Delete every saved code?'),
-      content: const Text(
-        'This removes all QR codes and barcodes from this device. This action cannot be undone.',
-      ),
+      title: Text(l10n.deleteAllTitle),
+      content: Text(l10n.deleteAllMessage),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         FilledButton(
           style: FilledButton.styleFrom(
@@ -108,7 +110,7 @@ class _DeleteAllDialog extends StatelessWidget {
             foregroundColor: theme.colorScheme.onError,
           ),
           onPressed: () => Navigator.pop(context, true),
-          child: const Text('Delete all'),
+          child: Text(l10n.deleteAll),
         ),
       ],
     );

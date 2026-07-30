@@ -1,3 +1,4 @@
+import 'package:code_pocket/l10n/l10n.dart';
 import 'package:code_pocket/themes/app_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -9,6 +10,7 @@ class CodePayloadPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Container(
       width: double.infinity,
@@ -21,7 +23,7 @@ class CodePayloadPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Encoded content', style: theme.textTheme.labelLarge),
+          Text(l10n.encodedContent, style: theme.textTheme.labelLarge),
           const SizedBox(height: AppSpacing.xs),
           SelectableText(
             data,

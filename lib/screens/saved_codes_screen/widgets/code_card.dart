@@ -1,8 +1,10 @@
+import 'package:code_pocket/l10n/l10n.dart';
 import 'package:code_pocket/models/code_data.dart';
 import 'package:code_pocket/providers/selected_code_type_provider.dart';
 import 'package:code_pocket/themes/app_theme.dart';
 import 'package:code_pocket/widgets/code_visual.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 enum _CodeCardAction { open, delete }
 
@@ -35,6 +37,7 @@ class CodeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Dismissible(
       key: ValueKey(codeData.id),
@@ -65,7 +68,7 @@ class CodeCard extends StatelessWidget {
                 const SizedBox(width: AppSpacing.md),
                 Expanded(child: _CodeSummary(codeData: codeData)),
                 PopupMenuButton<_CodeCardAction>(
-                  tooltip: 'Code options',
+                  tooltip: l10n.codeOptions,
                   onSelected: (action) {
                     switch (action) {
                       case _CodeCardAction.open:
@@ -74,14 +77,14 @@ class CodeCard extends StatelessWidget {
                         _handleDelete(context);
                     }
                   },
-                  itemBuilder: (context) => const [
+                  itemBuilder: (context) => [
                     PopupMenuItem(
                       value: _CodeCardAction.open,
                       child: Row(
                         children: [
-                          Icon(Icons.open_in_new_rounded),
-                          SizedBox(width: AppSpacing.sm),
-                          Text('Open'),
+                          const Icon(Icons.open_in_new_rounded),
+                          const SizedBox(width: AppSpacing.sm),
+                          Text(l10n.open),
                         ],
                       ),
                     ),
@@ -89,9 +92,9 @@ class CodeCard extends StatelessWidget {
                       value: _CodeCardAction.delete,
                       child: Row(
                         children: [
-                          Icon(Icons.delete_outline_rounded),
-                          SizedBox(width: AppSpacing.sm),
-                          Text('Delete'),
+                          const Icon(Icons.delete_outline_rounded),
+                          const SizedBox(width: AppSpacing.sm),
+                          Text(l10n.delete),
                         ],
                       ),
                     ),
@@ -143,6 +146,7 @@ class _CodeSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,7 +159,10 @@ class _CodeSummary extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.xxs),
         Text(
-          '${codeData.codeType.label}  •  ${formatSavedCodeDate(codeData.createdAt)}',
+          l10n.codeMetadata(
+            codeData.codeType.label(l10n),
+            formatSavedCodeDate(codeData.createdAt, l10n),
+          ),
           style: theme.textTheme.bodySmall,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -175,24 +182,24 @@ class _CodeSummary extends StatelessWidget {
   }
 }
 
-String formatSavedCodeDate(DateTime? date, {DateTime? now}) {
-  if (date == null) return 'Saved';
+String formatSavedCodeDate(
+  DateTime? date,
+  AppLocalizations l10n, {
+  DateTime? now,
+}) {
+  if (date == null) return l10n.saved;
   final currentTime = now ?? DateTime.now();
   final difference = currentTime.difference(date);
 
-  if (difference.isNegative) return _formatCalendarDate(date);
-  if (difference.inMinutes < 1) return 'Just now';
-  if (difference.inHours < 1) return '${difference.inMinutes} min ago';
-  if (difference.inDays < 1) return '${difference.inHours} hr ago';
-  if (difference.inDays == 1) return 'Yesterday';
-  if (difference.inDays < 7) return '${difference.inDays} days ago';
-  return _formatCalendarDate(date);
-}
-
-String _formatCalendarDate(DateTime date) {
-  return '${date.day.toString().padLeft(2, '0')}/'
-      '${date.month.toString().padLeft(2, '0')}/'
-      '${date.year}';
+  if (difference.isNegative) {
+    return DateFormat.yMd(l10n.localeName).format(date);
+  }
+  if (difference.inMinutes < 1) return l10n.justNow;
+  if (difference.inHours < 1) return l10n.minutesAgo(difference.inMinutes);
+  if (difference.inDays < 1) return l10n.hoursAgo(difference.inHours);
+  if (difference.inDays == 1) return l10n.yesterday;
+  if (difference.inDays < 7) return l10n.daysAgo(difference.inDays);
+  return DateFormat.yMd(l10n.localeName).format(date);
 }
 
 class _DeleteCodeDialog extends StatelessWidget {
@@ -203,17 +210,16 @@ class _DeleteCodeDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return AlertDialog(
       icon: Icon(Icons.delete_outline_rounded, color: theme.colorScheme.error),
-      title: const Text('Delete this code?'),
-      content: Text(
-        '“$title” will be removed from this device. This action cannot be undone.',
-      ),
+      title: Text(l10n.deleteCodeTitle),
+      content: Text(l10n.deleteCodeMessage(title)),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         FilledButton(
           style: FilledButton.styleFrom(
@@ -221,7 +227,7 @@ class _DeleteCodeDialog extends StatelessWidget {
             foregroundColor: theme.colorScheme.onError,
           ),
           onPressed: () => Navigator.pop(context, true),
-          child: const Text('Delete'),
+          child: Text(l10n.delete),
         ),
       ],
     );

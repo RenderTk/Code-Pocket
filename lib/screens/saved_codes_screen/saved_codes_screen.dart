@@ -1,3 +1,4 @@
+import 'package:code_pocket/l10n/l10n.dart';
 import 'package:code_pocket/models/code_data.dart';
 import 'package:code_pocket/providers/active_screen_provider.dart';
 import 'package:code_pocket/providers/codes_provider.dart';
@@ -55,14 +56,16 @@ class _SavedCodesScreenState extends ConsumerState<SavedCodesScreen> {
     try {
       await ref.read(codesProvider.notifier).deleteCode(code.id!);
       if (!mounted) return;
+      final l10n = context.l10n;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Code deleted')));
+      ).showSnackBar(SnackBar(content: Text(l10n.codeDeleted)));
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not delete the code')),
-      );
+      final l10n = context.l10n;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.codeDeleteFailed)));
     }
   }
 
@@ -164,6 +167,7 @@ class _LibraryContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final filteredCodes = filterSavedCodes(
       codes,
       query: query,
@@ -174,8 +178,8 @@ class _LibraryContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppPageHeader(
-          title: 'Your library',
-          description: 'Find every code you have saved on this device.',
+          title: l10n.libraryTitle,
+          description: l10n.libraryDescription,
           trailing: codes.isEmpty
               ? null
               : _LibraryCount(count: filteredCodes.length),
@@ -184,12 +188,12 @@ class _LibraryContent extends StatelessWidget {
         SearchBar(
           controller: searchController,
           backgroundColor: WidgetStatePropertyAll(theme.colorScheme.surface),
-          hintText: 'Search names or content',
+          hintText: l10n.searchHint,
           leading: const Icon(Icons.search_rounded),
           trailing: [
             if (query.isNotEmpty)
               IconButton(
-                tooltip: 'Clear search',
+                tooltip: l10n.clearSearch,
                 onPressed: onClearQuery,
                 icon: const Icon(Icons.close_rounded),
               ),
@@ -244,6 +248,7 @@ class _LibraryFilters extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     const filters = SavedCodeFilter.values;
 
     return Row(
@@ -253,7 +258,7 @@ class _LibraryFilters extends StatelessWidget {
           if (index > 0) const SizedBox(width: AppSpacing.xs),
           Expanded(
             child: ChoiceChip(
-              label: Center(child: Text(filters[index].label)),
+              label: Center(child: Text(filters[index].label(l10n))),
               backgroundColor: theme.colorScheme.surface,
               selected: filters[index] == selectedFilter,
               onSelected: (_) => onFilterChanged(filters[index]),
@@ -301,11 +306,12 @@ class _EmptyLibrary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return _LibraryMessage(
       icon: Icons.folder_open_rounded,
-      title: 'Your library is empty',
-      message: 'Create a code, then save it here for quick access.',
+      title: l10n.emptyLibraryTitle,
+      message: l10n.emptyLibraryMessage,
       action: FilledButton.icon(
         style: FilledButton.styleFrom(
           backgroundColor: theme.colorScheme.primary,
@@ -313,7 +319,7 @@ class _EmptyLibrary extends StatelessWidget {
         ),
         onPressed: onCreateCode,
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Create a code'),
+        label: Text(l10n.createCodeTitle),
       ),
     );
   }
@@ -325,13 +331,14 @@ class _NoLibraryResults extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return ColoredBox(
       color: theme.scaffoldBackgroundColor,
-      child: const _LibraryMessage(
+      child: _LibraryMessage(
         icon: Icons.search_off_rounded,
-        title: 'No matching codes',
-        message: 'Try another search or choose a different filter.',
+        title: l10n.noMatchesTitle,
+        message: l10n.noMatchesMessage,
       ),
     );
   }
@@ -413,13 +420,14 @@ class _LibraryLoadingState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const AppPageHeader(
-          title: 'Your library',
-          description: 'Find every code you have saved on this device.',
+        AppPageHeader(
+          title: l10n.libraryTitle,
+          description: l10n.libraryDescription,
         ),
         const SizedBox(height: AppSpacing.lg),
         _SkeletonBlock(height: 56, color: theme.colorScheme.surface),
@@ -469,19 +477,20 @@ class _LibraryErrorState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const AppPageHeader(
-          title: 'Your library',
-          description: 'Find every code you have saved on this device.',
+        AppPageHeader(
+          title: l10n.libraryTitle,
+          description: l10n.libraryDescription,
         ),
         Expanded(
           child: _LibraryMessage(
             icon: Icons.sync_problem_rounded,
-            title: 'Library unavailable',
-            message: 'The saved codes could not be loaded from this device.',
+            title: l10n.libraryUnavailableTitle,
+            message: l10n.libraryUnavailableMessage,
             action: FilledButton.icon(
               style: FilledButton.styleFrom(
                 backgroundColor: theme.colorScheme.primary,
@@ -489,7 +498,7 @@ class _LibraryErrorState extends StatelessWidget {
               ),
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Try again'),
+              label: Text(l10n.tryAgain),
             ),
           ),
         ),

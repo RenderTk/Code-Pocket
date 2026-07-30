@@ -1,3 +1,4 @@
+import 'package:code_pocket/l10n/l10n.dart';
 import 'package:code_pocket/models/code_data.dart';
 import 'package:code_pocket/providers/codes_provider.dart';
 import 'package:code_pocket/providers/selected_code_type_provider.dart';
@@ -41,10 +42,11 @@ class _ScanResultScreenState extends ConsumerState<ScanResultScreen> {
   }
 
   String? _validateTitle(String? value) {
+    final l10n = context.l10n;
     final title = value?.trim() ?? '';
-    if (title.isEmpty) return 'Enter a name before saving.';
+    if (title.isEmpty) return l10n.scanNameRequired;
     if (ref.read(codesProvider.notifier).exists(title)) {
-      return 'A saved code already uses this name.';
+      return l10n.duplicateName;
     }
     return null;
   }
@@ -53,9 +55,10 @@ class _ScanResultScreenState extends ConsumerState<ScanResultScreen> {
     await Clipboard.setData(ClipboardData(text: widget.data));
     selectionHaptic();
     if (!mounted) return;
+    final l10n = context.l10n;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('Copied to clipboard')));
+    ).showSnackBar(SnackBar(content: Text(l10n.copiedToClipboard)));
   }
 
   Future<void> _handleShare() async {
@@ -63,10 +66,11 @@ class _ScanResultScreenState extends ConsumerState<ScanResultScreen> {
     setState(() => _isSharing = true);
     try {
       final enteredTitle = _titleController.text.trim();
+      final l10n = context.l10n;
       await shareCodeImage(
         _imageController,
         title: enteredTitle.isEmpty
-            ? 'Scanned ${widget.codeType.label}'
+            ? widget.codeType.scannedShareTitle(l10n)
             : enteredTitle,
         text: widget.data,
         sharePositionOrigin: sharePositionOriginFor(context),
@@ -75,9 +79,10 @@ class _ScanResultScreenState extends ConsumerState<ScanResultScreen> {
       debugPrint('Scanned code sharing failed: $error');
       debugPrintStack(stackTrace: stackTrace);
       if (!mounted) return;
+      final l10n = context.l10n;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Could not share the code')));
+      ).showSnackBar(SnackBar(content: Text(l10n.shareFailed)));
     } finally {
       if (mounted) setState(() => _isSharing = false);
     }
@@ -99,15 +104,17 @@ class _ScanResultScreenState extends ConsumerState<ScanResultScreen> {
           );
       confirmationHaptic();
       if (!mounted) return;
+      final l10n = context.l10n;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Saved to your library')));
+      ).showSnackBar(SnackBar(content: Text(l10n.savedToLibrary)));
       Navigator.pop(context, true);
     } catch (_) {
       if (!mounted) return;
+      final l10n = context.l10n;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Could not save the code')));
+      ).showSnackBar(SnackBar(content: Text(l10n.saveFailed)));
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -116,9 +123,10 @@ class _ScanResultScreenState extends ConsumerState<ScanResultScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Scan result')),
+      appBar: AppBar(title: Text(l10n.scanResultTitle)),
       body: SafeArea(
         top: false,
         child: SingleChildScrollView(
@@ -152,21 +160,18 @@ class _ScanResultScreenState extends ConsumerState<ScanResultScreen> {
                     CodePayloadPanel(data: widget.data),
                     const SizedBox(height: AppSpacing.xl),
                     Text(
-                      'Save to your library',
+                      l10n.scanSaveTitle,
                       style: theme.textTheme.titleMedium,
                     ),
                     const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      'A name is required only when saving this code.',
-                      style: theme.textTheme.bodySmall,
-                    ),
+                    Text(l10n.scanSaveHelper, style: theme.textTheme.bodySmall),
                     const SizedBox(height: AppSpacing.sm),
                     TextFormField(
                       controller: _titleController,
                       autocorrect: false,
                       textCapitalization: TextCapitalization.sentences,
                       decoration: InputDecoration(
-                        hintText: widget.codeType.titleHint,
+                        hintText: widget.codeType.titleHint(l10n),
                       ),
                       validator: _validateTitle,
                     ),
@@ -183,7 +188,9 @@ class _ScanResultScreenState extends ConsumerState<ScanResultScreen> {
                                 ),
                               )
                             : const Icon(Icons.bookmark_add_outlined),
-                        label: Text(_isSaving ? 'Saving' : 'Save to library'),
+                        label: Text(
+                          _isSaving ? l10n.saving : l10n.saveToLibrary,
+                        ),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.sm),
@@ -193,7 +200,7 @@ class _ScanResultScreenState extends ConsumerState<ScanResultScreen> {
                           child: OutlinedButton.icon(
                             onPressed: _handleCopy,
                             icon: const Icon(Icons.content_copy_rounded),
-                            label: const Text('Copy'),
+                            label: Text(l10n.copy),
                           ),
                         ),
                         const SizedBox(width: AppSpacing.sm),
@@ -201,7 +208,7 @@ class _ScanResultScreenState extends ConsumerState<ScanResultScreen> {
                           child: OutlinedButton.icon(
                             onPressed: _isSharing ? null : _handleShare,
                             icon: const Icon(Icons.ios_share_rounded),
-                            label: Text(_isSharing ? 'Sharing' : 'Share'),
+                            label: Text(_isSharing ? l10n.sharing : l10n.share),
                           ),
                         ),
                       ],
@@ -211,7 +218,7 @@ class _ScanResultScreenState extends ConsumerState<ScanResultScreen> {
                       child: TextButton.icon(
                         onPressed: () => Navigator.pop(context),
                         icon: const Icon(Icons.center_focus_strong_rounded),
-                        label: const Text('Scan another'),
+                        label: Text(l10n.scanAnother),
                       ),
                     ),
                   ],
@@ -233,6 +240,7 @@ class _ScanSuccessHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Row(
       children: [
@@ -250,10 +258,10 @@ class _ScanSuccessHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Code captured', style: theme.textTheme.headlineSmall),
+              Text(l10n.codeCaptured, style: theme.textTheme.headlineSmall),
               const SizedBox(height: AppSpacing.xxs),
               Text(
-                '${codeType.label} detected successfully.',
+                codeType.detectedMessage(l10n),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),

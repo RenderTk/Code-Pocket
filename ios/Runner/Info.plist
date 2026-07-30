@@ -68,8 +68,8 @@
 	<true/>
 	
 	<key>NSCameraUsageDescription</key>
-	<string>This app needs camera access to scan QR codes and barcodes</string>
+	<string>Code Pocket uses the camera to scan QR codes and barcodes.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app needs photos access to get QR code from photo library</string>
+	<string>Code Pocket uses your photo library to import images containing QR codes.</string>
 </dict>
 </plist>

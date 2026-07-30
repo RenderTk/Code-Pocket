@@ -1,0 +1,2 @@
+"NSCameraUsageDescription" = "Code Pocket uses the camera to scan QR codes and barcodes.";
+"NSPhotoLibraryUsageDescription" = "Code Pocket uses your photo library to import images containing QR codes.";

@@ -1,3 +1,4 @@
+import 'package:code_pocket/l10n/l10n.dart';
 import 'package:code_pocket/themes/app_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -9,10 +10,11 @@ class AppLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Semantics(
       image: true,
-      label: 'Code Pocket logo',
+      label: l10n.appLogoSemantics,
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadii.control),

@@ -1,3 +1,4 @@
+import 'package:code_pocket/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreenNavbar extends StatelessWidget {
@@ -13,6 +14,7 @@ class HomeScreenNavbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -24,21 +26,21 @@ class HomeScreenNavbar extends StatelessWidget {
       child: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: onDestinationSelected,
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.add_box_outlined),
-            selectedIcon: Icon(Icons.add_box_rounded),
-            label: 'Create',
+            icon: const Icon(Icons.add_box_outlined),
+            selectedIcon: const Icon(Icons.add_box_rounded),
+            label: l10n.createTab,
           ),
           NavigationDestination(
-            icon: Icon(Icons.center_focus_weak_rounded),
-            selectedIcon: Icon(Icons.center_focus_strong_rounded),
-            label: 'Scan',
+            icon: const Icon(Icons.center_focus_weak_rounded),
+            selectedIcon: const Icon(Icons.center_focus_strong_rounded),
+            label: l10n.scanTab,
           ),
           NavigationDestination(
-            icon: Icon(Icons.folder_outlined),
-            selectedIcon: Icon(Icons.folder_rounded),
-            label: 'Library',
+            icon: const Icon(Icons.folder_outlined),
+            selectedIcon: const Icon(Icons.folder_rounded),
+            label: l10n.libraryTab,
           ),
         ],
       ),

@@ -1,3 +1,4 @@
+import 'package:code_pocket/l10n/l10n.dart';
 import 'package:code_pocket/providers/codes_provider.dart';
 import 'package:code_pocket/providers/selected_code_type_provider.dart';
 import 'package:code_pocket/screens/code_preview_screen/code_preview_screen.dart';
@@ -54,19 +55,21 @@ class _CreateCodeScreenState extends ConsumerState<CreateCodeScreen> {
   }
 
   String? _validateTitle(String? value, CodeType codeType) {
+    final l10n = context.l10n;
     final title = value?.trim() ?? '';
-    if (title.isEmpty) return 'Enter a name for this ${codeType.label}.';
+    if (title.isEmpty) return codeType.nameRequiredError(l10n);
     if (ref.read(codesProvider.notifier).exists(title)) {
-      return 'A saved code already uses this name.';
+      return l10n.duplicateName;
     }
     return null;
   }
 
   String? _validateData(String? value, CodeType codeType) {
+    final l10n = context.l10n;
     final data = value?.trim() ?? '';
-    if (data.isEmpty) return 'Enter the value you want to encode.';
+    if (data.isEmpty) return l10n.contentRequired;
     if (data.length > codeType.maxLength) {
-      return '${codeType.label}s support up to ${codeType.maxLength} characters.';
+      return codeType.tooLongError(l10n);
     }
     return null;
   }
@@ -74,6 +77,7 @@ class _CreateCodeScreenState extends ConsumerState<CreateCodeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final selectedCodeType = ref.watch(selectedCodeTypeProvider);
 
     return ColoredBox(
@@ -104,23 +108,21 @@ class _CreateCodeScreenState extends ConsumerState<CreateCodeScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const AppPageHeader(
-                              title: 'Create a code',
-                              description:
-                                  'Turn a link, message, or identifier into a code you can save and share.',
+                            AppPageHeader(
+                              title: l10n.createCodeTitle,
+                              description: l10n.createCodeDescription,
                             ),
                             const SizedBox(height: AppSpacing.xl),
-                            const _FieldLabel(
-                              label: 'Format',
-                              helper: 'Choose how the value should be encoded.',
+                            _FieldLabel(
+                              label: l10n.formatLabel,
+                              helper: l10n.formatHelper,
                             ),
                             const SizedBox(height: AppSpacing.sm),
                             const CodeTypeButtons(),
                             const SizedBox(height: AppSpacing.xl),
-                            const _FieldLabel(
-                              label: 'Name',
-                              helper:
-                                  'Use a name that will be easy to find in your library.',
+                            _FieldLabel(
+                              label: l10n.nameLabel,
+                              helper: l10n.nameHelper,
                             ),
                             const SizedBox(height: AppSpacing.sm),
                             TextFormField(
@@ -130,7 +132,7 @@ class _CreateCodeScreenState extends ConsumerState<CreateCodeScreen> {
                               textCapitalization: TextCapitalization.sentences,
                               textInputAction: TextInputAction.next,
                               decoration: InputDecoration(
-                                hintText: selectedCodeType.titleHint,
+                                hintText: selectedCodeType.titleHint(l10n),
                               ),
                               validator: (value) =>
                                   _validateTitle(value, selectedCodeType),
@@ -139,10 +141,10 @@ class _CreateCodeScreenState extends ConsumerState<CreateCodeScreen> {
                             ),
                             const SizedBox(height: AppSpacing.xl),
                             _FieldLabel(
-                              label: 'Content',
+                              label: l10n.contentLabel,
                               helper: selectedCodeType == CodeType.qrCode
-                                  ? 'QR codes can store links, messages, and longer text.'
-                                  : 'Code 128 barcodes work best with short identifiers.',
+                                  ? l10n.qrContentHelper
+                                  : l10n.barcodeContentHelper,
                             ),
                             const SizedBox(height: AppSpacing.sm),
                             TextFormField(
@@ -157,7 +159,7 @@ class _CreateCodeScreenState extends ConsumerState<CreateCodeScreen> {
                               maxLines: 8,
                               maxLength: selectedCodeType.maxLength,
                               decoration: InputDecoration(
-                                hintText: selectedCodeType.dataHint,
+                                hintText: selectedCodeType.dataHint(l10n),
                                 alignLabelWithHint: true,
                               ),
                               validator: (value) =>
@@ -185,7 +187,7 @@ class _CreateCodeScreenState extends ConsumerState<CreateCodeScreen> {
                         child: FilledButton.icon(
                           onPressed: () => _handleGenerate(selectedCodeType),
                           icon: Icon(selectedCodeType.icon),
-                          label: Text(selectedCodeType.generateLabel),
+                          label: Text(selectedCodeType.generateLabel(l10n)),
                         ),
                       ),
                     ),

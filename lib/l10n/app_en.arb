@@ -1,0 +1,168 @@
+{
+  "@@locale": "en",
+  "appName": "Code Pocket",
+  "appLogoSemantics": "Code Pocket logo",
+  "createTab": "Create",
+  "scanTab": "Scan",
+  "libraryTab": "Library",
+  "libraryCleared": "Library cleared",
+  "libraryClearFailed": "Could not clear the library",
+  "libraryOptions": "Library options",
+  "deleteAll": "Delete all",
+  "deleteAllTitle": "Delete every saved code?",
+  "deleteAllMessage": "This removes all QR codes and barcodes from this device. This action cannot be undone.",
+  "cancel": "Cancel",
+  "qrCode": "QR Code",
+  "barcode": "Barcode",
+  "qrCodes": "QR codes",
+  "barcodes": "Barcodes",
+  "all": "All",
+  "qrTitleHint": "Example: Event invitation",
+  "barcodeTitleHint": "Example: Inventory label",
+  "qrDataHint": "Paste a link, message, or any text",
+  "barcodeDataHint": "Enter the value to encode",
+  "generateQrCode": "Generate QR code",
+  "generateBarcode": "Generate barcode",
+  "qrNameRequired": "Enter a name for this QR Code.",
+  "barcodeNameRequired": "Enter a name for this Barcode.",
+  "duplicateName": "A saved code already uses this name.",
+  "contentRequired": "Enter the value you want to encode.",
+  "qrTooLong": "QR Codes support up to {maxLength} characters.",
+  "@qrTooLong": {
+    "placeholders": {
+      "maxLength": {
+        "type": "int"
+      }
+    }
+  },
+  "barcodeTooLong": "Barcodes support up to {maxLength} characters.",
+  "@barcodeTooLong": {
+    "placeholders": {
+      "maxLength": {
+        "type": "int"
+      }
+    }
+  },
+  "createCodeTitle": "Create a code",
+  "createCodeDescription": "Turn a link, message, or identifier into a code you can save and share.",
+  "formatLabel": "Format",
+  "formatHelper": "Choose how the value should be encoded.",
+  "nameLabel": "Name",
+  "nameHelper": "Use a name that will be easy to find in your library.",
+  "contentLabel": "Content",
+  "qrContentHelper": "QR codes can store links, messages, and longer text.",
+  "barcodeContentHelper": "Code 128 barcodes work best with short identifiers.",
+  "copiedToClipboard": "Copied to clipboard",
+  "shareFailed": "Could not share the code",
+  "savedToLibrary": "Saved to your library",
+  "saveFailed": "Could not save the code",
+  "savedCodeTitle": "Saved code",
+  "previewTitle": "Preview",
+  "previewReady": "Ready to scan, save, or share.",
+  "saving": "Saving",
+  "saveToLibrary": "Save to library",
+  "copy": "Copy",
+  "sharing": "Sharing",
+  "share": "Share",
+  "createAnother": "Create another",
+  "whiteCanvasNote": "The code image uses a white canvas for reliable scanning.",
+  "encodedContent": "Encoded content",
+  "codeSemantics": "{codeType} containing {data}",
+  "@codeSemantics": {
+    "placeholders": {
+      "codeType": {
+        "type": "String"
+      },
+      "data": {
+        "type": "String"
+      }
+    }
+  },
+  "scanCodeTitle": "Scan a code",
+  "scanCodeDescription": "Align any QR code or barcode inside the frame. Detection is automatic.",
+  "scannerPaused": "Scanner paused",
+  "holdSteady": "Hold steady",
+  "turnFlashlightOff": "Turn flashlight off",
+  "turnFlashlightOn": "Turn flashlight on",
+  "resumeScanner": "Resume scanner",
+  "pauseScanner": "Pause scanner",
+  "switchCamera": "Switch camera",
+  "startingCamera": "Starting camera",
+  "cameraAccessOff": "Camera access is off",
+  "cameraUnavailable": "Camera unavailable",
+  "cameraPermissionHelp": "Allow camera access in device settings, then try again.",
+  "cameraUnavailableHelp": "Check that a camera is available, then try again.",
+  "tryAgain": "Try again",
+  "scanResultTitle": "Scan result",
+  "scanSaveTitle": "Save to your library",
+  "scanSaveHelper": "A name is required only when saving this code.",
+  "scanNameRequired": "Enter a name before saving.",
+  "scanAnother": "Scan another",
+  "codeCaptured": "Code captured",
+  "qrDetected": "QR Code detected successfully.",
+  "barcodeDetected": "Barcode detected successfully.",
+  "scannedQrShareTitle": "Scanned QR Code",
+  "scannedBarcodeShareTitle": "Scanned Barcode",
+  "codeDeleted": "Code deleted",
+  "codeDeleteFailed": "Could not delete the code",
+  "libraryTitle": "Your library",
+  "libraryDescription": "Find every code you have saved on this device.",
+  "searchHint": "Search names or content",
+  "clearSearch": "Clear search",
+  "emptyLibraryTitle": "Your library is empty",
+  "emptyLibraryMessage": "Create a code, then save it here for quick access.",
+  "noMatchesTitle": "No matching codes",
+  "noMatchesMessage": "Try another search or choose a different filter.",
+  "libraryUnavailableTitle": "Library unavailable",
+  "libraryUnavailableMessage": "The saved codes could not be loaded from this device.",
+  "codeOptions": "Code options",
+  "open": "Open",
+  "delete": "Delete",
+  "saved": "Saved",
+  "justNow": "Just now",
+  "minutesAgo": "{count, plural, one{{count} min ago} other{{count} min ago}}",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "{count, plural, one{{count} hr ago} other{{count} hr ago}}",
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "yesterday": "Yesterday",
+  "daysAgo": "{count, plural, one{{count} day ago} other{{count} days ago}}",
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "codeMetadata": "{codeType}  •  {date}",
+  "@codeMetadata": {
+    "placeholders": {
+      "codeType": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteCodeTitle": "Delete this code?",
+  "deleteCodeMessage": "“{title}” will be removed from this device. This action cannot be undone.",
+  "@deleteCodeMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import 'package:barcode_widget/barcode_widget.dart';
+import 'package:code_pocket/l10n/l10n.dart';
 import 'package:code_pocket/providers/selected_code_type_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -20,10 +21,11 @@ class CodeVisual extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Semantics(
       image: true,
-      label: '${codeType.label} containing $data',
+      label: l10n.codeSemantics(codeType.label(l10n), data),
       child: codeType == CodeType.qrCode
           ? QrImageView(
               data: data,

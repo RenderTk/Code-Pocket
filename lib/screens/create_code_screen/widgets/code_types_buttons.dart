@@ -1,3 +1,4 @@
+import 'package:code_pocket/l10n/l10n.dart';
 import 'package:code_pocket/providers/selected_code_type_provider.dart';
 import 'package:code_pocket/themes/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ class CodeTypeButtons extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final selectedCodeType = ref.watch(selectedCodeTypeProvider);
 
     return SizedBox(
@@ -32,7 +34,7 @@ class CodeTypeButtons extends ConsumerWidget {
               (type) => ButtonSegment<CodeType>(
                 value: type,
                 icon: Icon(type.icon),
-                label: Text(type.label),
+                label: Text(type.label(l10n)),
               ),
             )
             .toList(growable: false),

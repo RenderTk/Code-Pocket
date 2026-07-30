@@ -1,3 +1,4 @@
+import 'package:code_pocket/l10n/l10n.dart';
 import 'package:code_pocket/models/code_data.dart';
 import 'package:code_pocket/providers/codes_provider.dart';
 import 'package:code_pocket/providers/selected_code_type_provider.dart';
@@ -45,9 +46,10 @@ class _CodePreviewScreenState extends ConsumerState<CodePreviewScreen> {
     await Clipboard.setData(ClipboardData(text: widget.data));
     selectionHaptic();
     if (!mounted) return;
+    final l10n = context.l10n;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('Copied to clipboard')));
+    ).showSnackBar(SnackBar(content: Text(l10n.copiedToClipboard)));
   }
 
   Future<void> _handleShare() async {
@@ -64,9 +66,10 @@ class _CodePreviewScreenState extends ConsumerState<CodePreviewScreen> {
       debugPrint('Code sharing failed: $error');
       debugPrintStack(stackTrace: stackTrace);
       if (!mounted) return;
+      final l10n = context.l10n;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Could not share the code')));
+      ).showSnackBar(SnackBar(content: Text(l10n.shareFailed)));
     } finally {
       if (mounted) setState(() => _isSharing = false);
     }
@@ -87,15 +90,17 @@ class _CodePreviewScreenState extends ConsumerState<CodePreviewScreen> {
           );
       confirmationHaptic();
       if (!mounted) return;
+      final l10n = context.l10n;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Saved to your library')));
+      ).showSnackBar(SnackBar(content: Text(l10n.savedToLibrary)));
       Navigator.pop(context, true);
     } catch (_) {
       if (!mounted) return;
+      final l10n = context.l10n;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Could not save the code')));
+      ).showSnackBar(SnackBar(content: Text(l10n.saveFailed)));
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -104,10 +109,13 @@ class _CodePreviewScreenState extends ConsumerState<CodePreviewScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(title: Text(widget.readOnly ? 'Saved code' : 'Preview')),
+      appBar: AppBar(
+        title: Text(widget.readOnly ? l10n.savedCodeTitle : l10n.previewTitle),
+      ),
       body: SafeArea(
         top: false,
         child: SingleChildScrollView(
@@ -168,6 +176,7 @@ class _PreviewHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,7 +193,7 @@ class _PreviewHeader extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                'Ready to scan, save, or share.',
+                l10n.previewReady,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -195,7 +204,7 @@ class _PreviewHeader extends StatelessWidget {
         const SizedBox(width: AppSpacing.md),
         Chip(
           avatar: Icon(codeType.icon, size: 18),
-          label: Text(codeType.label),
+          label: Text(codeType.label(l10n)),
           side: BorderSide(color: theme.colorScheme.outline),
           backgroundColor: theme.colorScheme.surface,
         ),
@@ -226,6 +235,7 @@ class _PreviewActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Column(
       children: [
@@ -240,7 +250,7 @@ class _PreviewActions extends StatelessWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.bookmark_add_outlined),
-              label: Text(isSaving ? 'Saving' : 'Save to library'),
+              label: Text(isSaving ? l10n.saving : l10n.saveToLibrary),
             ),
           ),
         if (!readOnly) const SizedBox(height: AppSpacing.sm),
@@ -250,7 +260,7 @@ class _PreviewActions extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: onCopy,
                 icon: const Icon(Icons.content_copy_rounded),
-                label: const Text('Copy'),
+                label: Text(l10n.copy),
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
@@ -259,12 +269,12 @@ class _PreviewActions extends StatelessWidget {
                   ? FilledButton.icon(
                       onPressed: isSharing ? null : onShare,
                       icon: const Icon(Icons.ios_share_rounded),
-                      label: Text(isSharing ? 'Sharing' : 'Share'),
+                      label: Text(isSharing ? l10n.sharing : l10n.share),
                     )
                   : OutlinedButton.icon(
                       onPressed: isSharing ? null : onShare,
                       icon: const Icon(Icons.ios_share_rounded),
-                      label: Text(isSharing ? 'Sharing' : 'Share'),
+                      label: Text(isSharing ? l10n.sharing : l10n.share),
                     ),
             ),
           ],
@@ -274,12 +284,12 @@ class _PreviewActions extends StatelessWidget {
           TextButton.icon(
             onPressed: onCreateAnother,
             icon: const Icon(Icons.add_rounded),
-            label: const Text('Create another'),
+            label: Text(l10n.createAnother),
           ),
         ],
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'The code image uses a white canvas for reliable scanning.',
+          l10n.whiteCanvasNote,
           textAlign: TextAlign.center,
           style: theme.textTheme.bodySmall,
         ),
