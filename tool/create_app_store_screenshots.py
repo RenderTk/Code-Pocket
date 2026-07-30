@@ -11,11 +11,9 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 ROOT = Path(__file__).resolve().parents[1]
 RAW_DIR = ROOT / "store_assets" / "appstore" / "raw"
 OUTPUT_DIR = ROOT / "store_assets" / "appstore" / "final"
-LOGO_PATH = ROOT / "assets" / "images" / "app_logo.png"
-
 CANVAS_SIZE = (1242, 2688)
 SCREEN_WIDTH = 900
-SCREEN_TOP = 665
+SCREEN_TOP = 580
 SCREEN_CORNER_RADIUS = 64
 
 FONT_BOLD = "/Library/Fonts/SF-Pro-Display-Bold.otf"
@@ -85,35 +83,6 @@ def _vertical_gradient(accent: tuple[int, int, int]) -> Image.Image:
     return Image.alpha_composite(image.convert("RGBA"), glow)
 
 
-def _add_brand_mark(canvas: Image.Image, accent: tuple[int, int, int]) -> None:
-    draw = ImageDraw.Draw(canvas)
-    logo = Image.open(LOGO_PATH).convert("RGBA")
-    logo.thumbnail((66, 66), Image.Resampling.LANCZOS)
-
-    logo_plate = Image.new("RGBA", (76, 76), (255, 255, 255, 245))
-    logo_mask = Image.new("L", logo_plate.size, 0)
-    ImageDraw.Draw(logo_mask).rounded_rectangle(
-        (0, 0, 75, 75),
-        radius=21,
-        fill=255,
-    )
-    logo_plate.putalpha(logo_mask)
-    canvas.alpha_composite(logo_plate, (82, 92))
-    canvas.alpha_composite(logo, (87, 97))
-
-    draw.text(
-        (180, 109),
-        "CODE POCKET",
-        font=_font(FONT_SEMIBOLD, 34),
-        fill=(235, 241, 255, 230),
-    )
-    draw.rounded_rectangle(
-        (82, 197, 204, 205),
-        radius=4,
-        fill=(*accent, 255),
-    )
-
-
 def _add_copy(
     canvas: Image.Image,
     eyebrow: str,
@@ -123,21 +92,21 @@ def _add_copy(
 ) -> None:
     draw = ImageDraw.Draw(canvas)
     draw.text(
-        (82, 228),
+        (82, 92),
         eyebrow,
         font=_font(FONT_SEMIBOLD, 28),
         fill=(*accent, 255),
         stroke_width=0,
     )
     draw.multiline_text(
-        (82, 276),
+        (82, 140),
         headline,
         font=_font(FONT_BOLD, 92),
         fill=(250, 252, 255, 255),
         spacing=-8,
     )
     draw.text(
-        (82, 540),
+        (82, 404),
         subtitle,
         font=_font(FONT_REGULAR, 35),
         fill=(193, 205, 229, 255),
@@ -194,7 +163,6 @@ def compose(item: dict[str, object]) -> Path:
     assert isinstance(accent, tuple)
 
     canvas = _vertical_gradient(accent)
-    _add_brand_mark(canvas, accent)
     _add_copy(
         canvas,
         str(item["eyebrow"]),

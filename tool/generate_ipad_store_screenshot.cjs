@@ -7,14 +7,12 @@ const sourcePath = path.join(
   projectRoot,
   'store_assets/appstore/raw/ipad-create.png',
 );
-const logoPath = path.join(projectRoot, 'assets/images/app_logo.png');
 const outputPath = path.join(
   projectRoot,
   'store_assets/appstore/final/04-ipad-create.png',
 );
 
 const sourceData = fs.readFileSync(sourcePath).toString('base64');
-const logoData = fs.readFileSync(logoPath).toString('base64');
 
 const artwork = `
 <svg width="2064" height="2752" viewBox="0 0 2064 2752"
@@ -38,7 +36,7 @@ const artwork = `
         flood-color="#000817" flood-opacity="0.48"/>
     </filter>
     <clipPath id="screenClip">
-      <rect x="252" y="650" width="1560" height="2080" rx="54"/>
+      <rect x="252" y="530" width="1560" height="2080" rx="54"/>
     </clipPath>
   </defs>
 
@@ -46,28 +44,21 @@ const artwork = `
   <rect width="2064" height="2752" fill="url(#glow)"/>
   <rect width="2064" height="2752" fill="url(#grid)"/>
 
-  <image href="data:image/png;base64,${logoData}"
-    x="104" y="92" width="86" height="86"/>
-  <text x="222" y="154" fill="#F8FAFF"
-    font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif"
-    font-size="48" font-weight="700" letter-spacing="0.5">CODE POCKET</text>
-
-  <rect x="104" y="222" width="116" height="10" rx="5" fill="#4D7CFF"/>
-  <text x="104" y="318" fill="#5F8AFF"
+  <text x="104" y="118" fill="#5F8AFF"
     font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif"
     font-size="35" font-weight="700" letter-spacing="1.8">CREATE</text>
-  <text x="104" y="442" fill="#FFFFFF"
+  <text x="104" y="242" fill="#FFFFFF"
     font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif"
     font-size="96" font-weight="750" letter-spacing="-2.2">Your code toolkit,</text>
-  <text x="104" y="548" fill="#FFFFFF"
+  <text x="104" y="348" fill="#FFFFFF"
     font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif"
     font-size="96" font-weight="750" letter-spacing="-2.2">beautifully organized.</text>
 
-  <rect x="238" y="636" width="1588" height="2108" rx="68"
+  <rect x="238" y="516" width="1588" height="2108" rx="68"
     fill="#E8EEFA" fill-opacity="0.22" stroke="#C8D8FF"
     stroke-opacity="0.52" stroke-width="3" filter="url(#shadow)"/>
   <image href="data:image/png;base64,${sourceData}"
-    x="252" y="650" width="1560" height="2080"
+    x="252" y="530" width="1560" height="2080"
     preserveAspectRatio="xMidYMid slice" clip-path="url(#screenClip)"/>
 </svg>`;
 
