@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class HomeScreenNavbar extends StatelessWidget {
   const HomeScreenNavbar({
@@ -8,28 +6,42 @@ class HomeScreenNavbar extends StatelessWidget {
     required this.selectedIndex,
     required this.onDestinationSelected,
   });
-  final Set<int> selectedIndex;
-  final void Function(int index) onDestinationSelected;
+
+  final int selectedIndex;
+  final ValueChanged<int> onDestinationSelected;
 
   @override
   Widget build(BuildContext context) {
-    return PlatformNavBar(
-      currentIndex: selectedIndex.first,
-      itemChanged: onDestinationSelected,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(FontAwesomeIcons.plus),
-          label: 'Create',
+    final theme = Theme.of(context);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        border: Border(
+          top: BorderSide(color: theme.colorScheme.outlineVariant),
         ),
-        BottomNavigationBarItem(
-          icon: Icon(FontAwesomeIcons.camera),
-          label: 'Scan',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(FontAwesomeIcons.solidFolder), // Both
-          label: 'Saved',
-        ),
-      ],
+      ),
+      child: NavigationBar(
+        selectedIndex: selectedIndex,
+        onDestinationSelected: onDestinationSelected,
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.add_box_outlined),
+            selectedIcon: Icon(Icons.add_box_rounded),
+            label: 'Create',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.center_focus_weak_rounded),
+            selectedIcon: Icon(Icons.center_focus_strong_rounded),
+            label: 'Scan',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.folder_outlined),
+            selectedIcon: Icon(Icons.folder_rounded),
+            label: 'Library',
+          ),
+        ],
+      ),
     );
   }
 }

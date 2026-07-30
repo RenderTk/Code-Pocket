@@ -1,3 +1,4 @@
+import 'package:code_pocket/themes/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class ScanOverlay extends StatefulWidget {
@@ -7,6 +8,7 @@ class ScanOverlay extends StatefulWidget {
     required this.top,
     required this.left,
   });
+
   final Size scanArea;
   final double top;
   final double left;
@@ -17,7 +19,7 @@ class ScanOverlay extends StatefulWidget {
 
 class _ScanOverlayState extends State<ScanOverlay>
     with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
+  late final AnimationController _animationController;
 
   @override
   void initState() {
@@ -25,7 +27,18 @@ class _ScanOverlayState extends State<ScanOverlay>
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final shouldAnimate = !MediaQuery.disableAnimationsOf(context);
+    if (shouldAnimate && !_animationController.isAnimating) {
+      _animationController.repeat(reverse: true);
+    } else if (!shouldAnimate && _animationController.isAnimating) {
+      _animationController.stop();
+    }
   }
 
   @override
@@ -36,200 +49,127 @@ class _ScanOverlayState extends State<ScanOverlay>
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Semi-transparent overlay
-        ColorFiltered(
-          colorFilter: ColorFilter.mode(
-            Colors.black.withValues(alpha: 0.6),
-            BlendMode.srcOut,
-          ),
-          child: Stack(
-            children: [
-              Container(
-                decoration: const BoxDecoration(
-                  color: Colors.black,
-                  backgroundBlendMode: BlendMode.dstOut,
-                ),
-              ),
-              Positioned(
-                top: widget.top,
-                left: widget.left,
-                child: Container(
-                  width: widget.scanArea.width,
-                  height: widget.scanArea.height,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+    final theme = Theme.of(context);
+    final scanRect = Rect.fromLTWH(
+      widget.left,
+      widget.top,
+      widget.scanArea.width,
+      widget.scanArea.height,
+    );
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
 
-        // Scanner frame
-        Positioned(
-          top: widget.top,
-          left: widget.left,
-          child: Container(
-            width: widget.scanArea.width,
-            height: widget.scanArea.height,
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Theme.of(context).colorScheme.primary,
-                width: 2,
-              ),
-              borderRadius: BorderRadius.circular(16),
+    return IgnorePointer(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          CustomPaint(painter: _ScanMaskPainter(scanRect: scanRect)),
+          CustomPaint(
+            painter: _ScanCornersPainter(
+              scanRect: scanRect,
+              color: theme.colorScheme.primary,
             ),
           ),
-        ),
-
-        // Scanning line animation
-        Positioned(
-          top: widget.top,
-          left: widget.left,
-          child: AnimatedBuilder(
-            animation: _animationController,
-            builder: (context, child) {
-              return Container(
-                width: widget.scanArea.width,
-                height: 2,
-                margin: EdgeInsets.only(
-                  top: widget.scanArea.height * _animationController.value,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.1),
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.1),
+          if (!reduceMotion)
+            Positioned(
+              left: widget.left + 18,
+              top: widget.top,
+              width: widget.scanArea.width - 36,
+              height: widget.scanArea.height,
+              child: AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  return Align(
+                    alignment: Alignment(
+                      0,
+                      (_animationController.value * 2) - 1,
+                    ),
+                    child: child,
+                  );
+                },
+                child: Container(
+                  height: 2,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
+                    borderRadius: BorderRadius.circular(2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.colorScheme.primary.withValues(
+                          alpha: 0.35,
+                        ),
+                        blurRadius: 10,
+                      ),
                     ],
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.5),
-                      blurRadius: 8,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-
-        // Corner indicators
-        // Top left
-        Positioned(
-          top: widget.top,
-          left: widget.left,
-          child: Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 4,
-                ),
-                left: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 4,
                 ),
               ),
             ),
-          ),
-        ),
-
-        // Top right
-        Positioned(
-          top: widget.top,
-          right: widget.left,
-          child: Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 4,
-                ),
-                right: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 4,
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // Bottom left
-        Positioned(
-          bottom: widget.top,
-          left: widget.left,
-          child: Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 4,
-                ),
-                left: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 4,
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // Bottom right
-        Positioned(
-          bottom: widget.top,
-          right: widget.left,
-          child: Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 4,
-                ),
-                right: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 4,
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // Instruction text
-        Positioned(
-          bottom: widget.top - 50,
-          left: 0,
-          right: 0,
-          child: const Text(
-            "Align barcode within the frame",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
+}
+
+class _ScanMaskPainter extends CustomPainter {
+  const _ScanMaskPainter({required this.scanRect});
+
+  final Rect scanRect;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.saveLayer(Offset.zero & size, Paint());
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()..color = const Color(0xA80A0E14),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        scanRect,
+        const Radius.circular(AppRadii.surface),
+      ),
+      Paint()..blendMode = BlendMode.clear,
+    );
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_ScanMaskPainter oldDelegate) =>
+      oldDelegate.scanRect != scanRect;
+}
+
+class _ScanCornersPainter extends CustomPainter {
+  const _ScanCornersPainter({required this.scanRect, required this.color});
+
+  final Rect scanRect;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const length = 34.0;
+    const inset = 1.5;
+    final rect = scanRect.deflate(inset);
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    final path = Path()
+      ..moveTo(rect.left, rect.top + length)
+      ..lineTo(rect.left, rect.top)
+      ..lineTo(rect.left + length, rect.top)
+      ..moveTo(rect.right - length, rect.top)
+      ..lineTo(rect.right, rect.top)
+      ..lineTo(rect.right, rect.top + length)
+      ..moveTo(rect.right, rect.bottom - length)
+      ..lineTo(rect.right, rect.bottom)
+      ..lineTo(rect.right - length, rect.bottom)
+      ..moveTo(rect.left + length, rect.bottom)
+      ..lineTo(rect.left, rect.bottom)
+      ..lineTo(rect.left, rect.bottom - length);
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_ScanCornersPainter oldDelegate) =>
+      oldDelegate.scanRect != scanRect || oldDelegate.color != color;
 }

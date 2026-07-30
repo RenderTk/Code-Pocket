@@ -1,11 +1,38 @@
 import 'package:code_pocket/models/code_data.dart';
+import 'package:code_pocket/providers/active_screen_provider.dart';
 import 'package:code_pocket/providers/codes_provider.dart';
+import 'package:code_pocket/providers/selected_code_type_provider.dart';
 import 'package:code_pocket/screens/code_preview_screen/code_preview_screen.dart';
 import 'package:code_pocket/screens/saved_codes_screen/widgets/code_card.dart';
+import 'package:code_pocket/themes/app_theme.dart';
+import 'package:code_pocket/widgets/app_page_header.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+@visibleForTesting
+List<CodeData> filterSavedCodes(
+  List<CodeData> codes, {
+  required String query,
+  required SavedCodeFilter filter,
+}) {
+  final normalizedQuery = query.trim().toLowerCase();
+  final matchingType = codes.where((code) => filter.includes(code.codeType));
+  if (normalizedQuery.isEmpty) return matchingType.toList(growable: false);
+
+  final startsWith = <CodeData>[];
+  final contains = <CodeData>[];
+  for (final code in matchingType) {
+    final title = code.title.toLowerCase();
+    final data = code.data.toLowerCase();
+    if (title.startsWith(normalizedQuery)) {
+      startsWith.add(code);
+    } else if (title.contains(normalizedQuery) ||
+        data.contains(normalizedQuery)) {
+      contains.add(code);
+    }
+  }
+  return [...startsWith, ...contains];
+}
 
 class SavedCodesScreen extends ConsumerStatefulWidget {
   const SavedCodesScreen({super.key});
@@ -16,7 +43,7 @@ class SavedCodesScreen extends ConsumerStatefulWidget {
 
 class _SavedCodesScreenState extends ConsumerState<SavedCodesScreen> {
   final _searchController = TextEditingController();
-  List<CodeData> filteredCodes = [];
+  SavedCodeFilter _selectedFilter = SavedCodeFilter.all;
 
   @override
   void dispose() {
@@ -24,158 +51,449 @@ class _SavedCodesScreenState extends ConsumerState<SavedCodesScreen> {
     super.dispose();
   }
 
-  List<CodeData> onSearch(String query, List<CodeData> codes) {
-    // Handle null or empty query
-    if (query.trim().isEmpty) return codes;
-
-    final normalizedQuery = query.toLowerCase().trim();
-
-    List<CodeData> startsWithMatches = [];
-    List<CodeData> containsMatches = [];
-
-    for (var code in codes) {
-      // Add null safety check for title
-      final title = (code.title).toLowerCase();
-
-      if (title.startsWith(normalizedQuery)) {
-        startsWithMatches.add(code);
-      } else if (title.contains(normalizedQuery)) {
-        containsMatches.add(code);
-      }
+  Future<void> _handleDelete(CodeData code) async {
+    try {
+      await ref.read(codesProvider.notifier).deleteCode(code.id!);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Code deleted')));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not delete the code')),
+      );
     }
+  }
 
-    // Return combined results with startsWith matches first
-    return [...startsWithMatches, ...containsMatches];
+  void _openCode(CodeData code) {
+    Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CodePreviewScreen(
+          codeType: code.codeType,
+          title: code.title,
+          data: code.data,
+          readOnly: true,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final codes = ref.watch(codesProvider);
 
-    return codes.when(
-      data: (codes) {
-        filteredCodes = onSearch(_searchController.text, codes);
-
-        return Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            children: [
-              SearchBar(
-                controller: _searchController,
-                hintText: 'Search your codes',
-                trailing: [
-                  PlatformIconButton(
-                    icon: Icon(
-                      PlatformIcons(context).clear,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _searchController.clear();
-                      });
-                    },
-                  ),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _searchController.text = value;
-                  });
-                },
-                onSubmitted: (value) {
-                  setState(() {
-                    _searchController.text = value;
-                  });
-                },
-                onTapOutside: (_) =>
-                    FocusManager.instance.primaryFocus?.unfocus(),
+    return ColoredBox(
+      color: theme.scaffoldBackgroundColor,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.sm,
+            AppSpacing.lg,
+            0,
+          ),
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 760),
+              child: codes.when(
+                loading: () => const _LibraryLoadingState(),
+                error: (error, stackTrace) => _LibraryErrorState(
+                  onRetry: () =>
+                      ref.read(codesProvider.notifier).refreshCodes(),
+                ),
+                data: (savedCodes) => _LibraryContent(
+                  codes: savedCodes,
+                  query: _searchController.text,
+                  searchController: _searchController,
+                  selectedFilter: _selectedFilter,
+                  onQueryChanged: (_) => setState(() {}),
+                  onClearQuery: () {
+                    _searchController.clear();
+                    setState(() {});
+                  },
+                  onFilterChanged: (filter) {
+                    setState(() => _selectedFilter = filter);
+                  },
+                  onOpenCode: _openCode,
+                  onDeleteCode: _handleDelete,
+                  onCreateCode: () {
+                    ref
+                        .read(activeScreenProvider.notifier)
+                        .setActiveScreen(ActiveScreen.createCode);
+                  },
+                ),
               ),
-              const SizedBox(height: 15),
-              filteredCodes.isNotEmpty
-                  ? Expanded(
-                      child:
-                          ListView.builder(
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                cacheExtent: 100,
-                                itemCount: filteredCodes.length,
-                                itemBuilder: (context, index) {
-                                  final code = filteredCodes[index];
-                                  return CodeCard(
-                                        key: ValueKey(code.id),
-                                        codeData: code,
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) => CodePreviewScreen(
-                                                codeType: code.codeType,
-                                                title: code.title,
-                                                data: code.data,
-                                                readOnly: true,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        onDelete: () {
-                                          ref
-                                              .read(codesProvider.notifier)
-                                              .deleteCode(code.id!);
-                                        },
-                                      )
-                                      .animate()
-                                      .fade(duration: 300.ms)
-                                      .slideX(duration: 300.ms);
-                                },
-                              )
-                              .animate()
-                              .scale(duration: 300.ms)
-                              .slide(duration: 300.ms),
-                    )
-                  : Expanded(
-                      // Wrap the Column with Expanded
-                      child: Center(
-                        // Add Center widget
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.hourglass_empty,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withValues(alpha: 0.6),
-                              size: 64,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No saved codes found',
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface,
-                                  ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Try searching for a code or generating a new one.',
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LibraryContent extends StatelessWidget {
+  const _LibraryContent({
+    required this.codes,
+    required this.query,
+    required this.searchController,
+    required this.selectedFilter,
+    required this.onQueryChanged,
+    required this.onClearQuery,
+    required this.onFilterChanged,
+    required this.onOpenCode,
+    required this.onDeleteCode,
+    required this.onCreateCode,
+  });
+
+  final List<CodeData> codes;
+  final String query;
+  final TextEditingController searchController;
+  final SavedCodeFilter selectedFilter;
+  final ValueChanged<String> onQueryChanged;
+  final VoidCallback onClearQuery;
+  final ValueChanged<SavedCodeFilter> onFilterChanged;
+  final ValueChanged<CodeData> onOpenCode;
+  final Future<void> Function(CodeData) onDeleteCode;
+  final VoidCallback onCreateCode;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final filteredCodes = filterSavedCodes(
+      codes,
+      query: query,
+      filter: selectedFilter,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppPageHeader(
+          title: 'Your library',
+          description: 'Find every code you have saved on this device.',
+          trailing: codes.isEmpty
+              ? null
+              : _LibraryCount(count: filteredCodes.length),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        SearchBar(
+          controller: searchController,
+          backgroundColor: WidgetStatePropertyAll(theme.colorScheme.surface),
+          hintText: 'Search names or content',
+          leading: const Icon(Icons.search_rounded),
+          trailing: [
+            if (query.isNotEmpty)
+              IconButton(
+                tooltip: 'Clear search',
+                onPressed: onClearQuery,
+                icon: const Icon(Icons.close_rounded),
+              ),
+          ],
+          onChanged: onQueryChanged,
+          onSubmitted: onQueryChanged,
+          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        _LibraryFilters(
+          selectedFilter: selectedFilter,
+          onFilterChanged: onFilterChanged,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Expanded(
+          child: codes.isEmpty
+              ? _EmptyLibrary(onCreateCode: onCreateCode)
+              : filteredCodes.isEmpty
+              ? const _NoLibraryResults()
+              : ListView.separated(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  itemCount: filteredCodes.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: AppSpacing.sm),
+                  itemBuilder: (context, index) {
+                    final code = filteredCodes[index];
+                    return CodeCard(
+                      key: ValueKey(code.id),
+                      codeData: code,
+                      onTap: () => onOpenCode(code),
+                      onDelete: () => onDeleteCode(code),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+class _LibraryFilters extends StatelessWidget {
+  const _LibraryFilters({
+    required this.selectedFilter,
+    required this.onFilterChanged,
+  });
+
+  final SavedCodeFilter selectedFilter;
+  final ValueChanged<SavedCodeFilter> onFilterChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    const filters = SavedCodeFilter.values;
+
+    return Row(
+      key: const ValueKey('library-filter-row'),
+      children: [
+        for (var index = 0; index < filters.length; index++) ...[
+          if (index > 0) const SizedBox(width: AppSpacing.xs),
+          Expanded(
+            child: ChoiceChip(
+              label: Center(child: Text(filters[index].label)),
+              backgroundColor: theme.colorScheme.surface,
+              selected: filters[index] == selectedFilter,
+              onSelected: (_) => onFilterChanged(filters[index]),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _LibraryCount extends StatelessWidget {
+  const _LibraryCount({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(AppRadii.control),
+      ),
+      child: Text(
+        '$count',
+        style: theme.textTheme.labelLarge?.copyWith(
+          color: theme.colorScheme.onPrimaryContainer,
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyLibrary extends StatelessWidget {
+  const _EmptyLibrary({required this.onCreateCode});
+
+  final VoidCallback onCreateCode;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return _LibraryMessage(
+      icon: Icons.folder_open_rounded,
+      title: 'Your library is empty',
+      message: 'Create a code, then save it here for quick access.',
+      action: FilledButton.icon(
+        style: FilledButton.styleFrom(
+          backgroundColor: theme.colorScheme.primary,
+          foregroundColor: theme.colorScheme.onPrimary,
+        ),
+        onPressed: onCreateCode,
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Create a code'),
+      ),
+    );
+  }
+}
+
+class _NoLibraryResults extends StatelessWidget {
+  const _NoLibraryResults();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return ColoredBox(
+      color: theme.scaffoldBackgroundColor,
+      child: const _LibraryMessage(
+        icon: Icons.search_off_rounded,
+        title: 'No matching codes',
+        message: 'Try another search or choose a different filter.',
+      ),
+    );
+  }
+}
+
+class _LibraryMessage extends StatelessWidget {
+  const _LibraryMessage({
+    required this.icon,
+    required this.title,
+    required this.message,
+    this.action,
+  });
+
+  final IconData icon;
+  final String title;
+  final String message;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(AppRadii.surface),
+                      ),
+                      child: Icon(
+                        icon,
+                        size: 32,
+                        color: theme.colorScheme.onPrimaryContainer,
                       ),
                     ),
-            ],
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      title,
+                      style: theme.textTheme.titleLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      message,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    if (action != null) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      action!,
+                    ],
+                  ],
+                ),
+              ),
+            ),
           ),
         );
       },
-      loading: () => const Center(child: PlatformCircularProgressIndicator()),
-      error: (error, stack) => Center(child: PlatformText('Error: $error')),
+    );
+  }
+}
+
+class _LibraryLoadingState extends StatelessWidget {
+  const _LibraryLoadingState();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const AppPageHeader(
+          title: 'Your library',
+          description: 'Find every code you have saved on this device.',
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        _SkeletonBlock(height: 56, color: theme.colorScheme.surface),
+        const SizedBox(height: AppSpacing.lg),
+        Expanded(
+          child: ListView.separated(
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: 4,
+            separatorBuilder: (context, index) =>
+                const SizedBox(height: AppSpacing.sm),
+            itemBuilder: (context, index) =>
+                _SkeletonBlock(height: 98, color: theme.colorScheme.surface),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SkeletonBlock extends StatelessWidget {
+  const _SkeletonBlock({required this.height, required this.color});
+
+  final double height;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      height: height,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(AppRadii.surface),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+    );
+  }
+}
+
+class _LibraryErrorState extends StatelessWidget {
+  const _LibraryErrorState({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const AppPageHeader(
+          title: 'Your library',
+          description: 'Find every code you have saved on this device.',
+        ),
+        Expanded(
+          child: _LibraryMessage(
+            icon: Icons.sync_problem_rounded,
+            title: 'Library unavailable',
+            message: 'The saved codes could not be loaded from this device.',
+            action: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: theme.colorScheme.onPrimary,
+              ),
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Try again'),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

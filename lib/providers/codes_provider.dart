@@ -2,13 +2,12 @@ import 'package:code_pocket/models/code_data.dart';
 import 'package:code_pocket/services/db_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CodesNotifier extends AsyncNotifier<List<CodeData>> {
-  final DbService _dbService = DbService.instance;
+final dbServiceProvider = Provider<CodesStore>((ref) => DbService.instance);
 
+class CodesNotifier extends AsyncNotifier<List<CodeData>> {
   @override
   Future<List<CodeData>> build() async {
-    final codes = await _dbService.getAllCodes();
-    return codes;
+    return ref.read(dbServiceProvider).getAllCodes();
   }
 
   List<CodeData> _makeDeepCopy() {
@@ -18,59 +17,52 @@ class CodesNotifier extends AsyncNotifier<List<CodeData>> {
   Future<void> refreshCodes() async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final codes = await _dbService.getAllCodes();
-      return codes;
+      return ref.read(dbServiceProvider).getAllCodes();
     });
   }
 
-  Future<void> addCode(CodeData code) async {
-    state = const AsyncValue.loading();
-
+  Future<CodeData> addCode(CodeData code) async {
     final codes = _makeDeepCopy();
+    final id = await ref.read(dbServiceProvider).insertCode(code);
+    final savedCode = code.copyWith(
+      id: id,
+      createdAt: code.createdAt ?? DateTime.now(),
+    );
 
-    state = await AsyncValue.guard(() async {
-      //update state on sqlite
-      int id = await _dbService.insertCode(code);
-
-      //update state on provider
-      codes.insert(0, code.copyWith(id: id));
-      return codes;
-    });
+    state = AsyncValue.data([savedCode, ...codes]);
+    return savedCode;
   }
 
   Future<void> deleteCode(int id) async {
-    // optimistic update
-    final codes = _makeDeepCopy()..removeWhere((code) => code.id == id);
-    state = AsyncValue.data(codes);
+    final previousCodes = _makeDeepCopy();
+    final updatedCodes = previousCodes
+        .where((code) => code.id != id)
+        .toList(growable: false);
+    state = AsyncValue.data(updatedCodes);
 
     try {
-      // delete from DB in background
-      await _dbService.deleteCode(id);
+      await ref.read(dbServiceProvider).deleteCode(id);
     } catch (e, st) {
-      // rollback if DB fails
-      state = AsyncValue.error(e, st);
+      state = AsyncValue.data(previousCodes);
+      Error.throwWithStackTrace(e, st);
     }
   }
 
   Future<void> deleteAllCodes() async {
-    state = const AsyncValue.loading();
+    final previousCodes = _makeDeepCopy();
+    state = const AsyncValue.data([]);
 
-    state = await AsyncValue.guard(() async {
-      //update state on sqlite
-      await _dbService.deleteAllCodes();
-
-      //update state on provider
-      return <CodeData>[];
-    });
+    try {
+      await ref.read(dbServiceProvider).deleteAllCodes();
+    } catch (e, st) {
+      state = AsyncValue.data(previousCodes);
+      Error.throwWithStackTrace(e, st);
+    }
   }
 
   bool exists(String title) {
     final codes = state.value ?? [];
     return codes.any((code) => code.title == title);
-  }
-
-  void clearError() {
-    state = AsyncValue.data(_makeDeepCopy());
   }
 }
 

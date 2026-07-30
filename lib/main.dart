@@ -13,12 +13,17 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Code Pocket',
+      color: theme.colorScheme.surface,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
+      themeAnimationDuration: AppDurations.standard,
+      themeAnimationCurve: Curves.easeOutCubic,
       home: const HomeScreen(),
     );
   }

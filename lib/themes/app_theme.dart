@@ -1,691 +1,330 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// Comprehensive Material 3 theme system with improved dark mode
-class AppTheme {
-  static const Color _seedColor = Color(0xFF1976D2); // Modern Professional Blue
+abstract final class AppSpacing {
+  static const double xxs = 4;
+  static const double xs = 8;
+  static const double sm = 12;
+  static const double md = 16;
+  static const double lg = 20;
+  static const double xl = 24;
+  static const double xxl = 32;
+  static const double xxxl = 40;
+}
 
-  // Enhanced dark mode seed color for better contrast
-  static const Color _darkSeedColor = Color(
-    0xFF90CAF9,
-  ); // Lighter blue for dark mode
+abstract final class AppRadii {
+  static const double control = 14;
+  static const double surface = 20;
+  static const double hero = 28;
+}
 
-  // Generate color schemes with custom adjustments
-  static final ColorScheme _lightColorScheme = ColorScheme.fromSeed(
-    seedColor: _seedColor,
+abstract final class AppDurations {
+  static const Duration fast = Duration(milliseconds: 180);
+  static const Duration standard = Duration(milliseconds: 240);
+  static const Duration slow = Duration(milliseconds: 300);
+}
+
+abstract final class AppTheme {
+  static const Color _lightCanvas = Color(0xFFF5F7FA);
+  static const Color _lightSurface = Color(0xFFFCFDFE);
+  static const Color _lightInk = Color(0xFF111722);
+  static const Color _lightMuted = Color(0xFF5E6877);
+  static const Color _lightOutline = Color(0xFFDCE2EA);
+
+  static const Color _darkCanvas = Color(0xFF0D1117);
+  static const Color _darkSurface = Color(0xFF151B24);
+  static const Color _darkInk = Color(0xFFF0F3F7);
+  static const Color _darkMuted = Color(0xFFAAB3C0);
+  static const Color _darkOutline = Color(0xFF2A3340);
+
+  static const Color _lightAccent = Color(0xFF2859D9);
+  static const Color _darkAccent = Color(0xFF88A8FF);
+
+  static ThemeData get light => _build(
     brightness: Brightness.light,
+    canvas: _lightCanvas,
+    surface: _lightSurface,
+    ink: _lightInk,
+    muted: _lightMuted,
+    outline: _lightOutline,
+    accent: _lightAccent,
   );
 
-  static final ColorScheme _darkColorScheme =
-      ColorScheme.fromSeed(
-        seedColor: _darkSeedColor,
-        brightness: Brightness.dark,
-      ).copyWith(
-        // Enhanced dark mode surface colors for better layering
-        surface: const Color(0xFF121212), // True dark surface
-        surfaceContainerLowest: const Color(0xFF0F0F0F),
-        surfaceContainerLow: const Color(0xFF1A1A1A),
-        surfaceContainer: const Color(0xFF1E1E1E),
-        surfaceContainerHigh: const Color(0xFF232323),
-        surfaceContainerHighest: const Color(0xFF2A2A2A),
+  static ThemeData get dark => _build(
+    brightness: Brightness.dark,
+    canvas: _darkCanvas,
+    surface: _darkSurface,
+    ink: _darkInk,
+    muted: _darkMuted,
+    outline: _darkOutline,
+    accent: _darkAccent,
+  );
 
-        // Better outline colors for dark mode
-        outline: const Color(0xFF525252),
-        outlineVariant: const Color(0xFF404040),
+  static ThemeData _build({
+    required Brightness brightness,
+    required Color canvas,
+    required Color surface,
+    required Color ink,
+    required Color muted,
+    required Color outline,
+    required Color accent,
+  }) {
+    final isDark = brightness == Brightness.dark;
+    final colorScheme =
+        ColorScheme.fromSeed(
+          seedColor: accent,
+          brightness: brightness,
+        ).copyWith(
+          primary: accent,
+          onPrimary: isDark ? const Color(0xFF0B1B45) : Colors.white,
+          primaryContainer: isDark
+              ? const Color(0xFF1F356A)
+              : const Color(0xFFDCE6FF),
+          onPrimaryContainer: isDark
+              ? const Color(0xFFE3EAFF)
+              : const Color(0xFF102554),
+          surface: surface,
+          onSurface: ink,
+          onSurfaceVariant: muted,
+          outline: outline,
+          outlineVariant: outline.withValues(alpha: isDark ? 0.72 : 0.8),
+          surfaceContainerLowest: isDark
+              ? const Color(0xFF090D12)
+              : Colors.white,
+          surfaceContainerLow: surface,
+          surfaceContainer: isDark
+              ? const Color(0xFF19212C)
+              : const Color(0xFFF0F3F7),
+          surfaceContainerHigh: isDark
+              ? const Color(0xFF202936)
+              : const Color(0xFFE9EEF4),
+          surfaceContainerHighest: isDark
+              ? const Color(0xFF293442)
+              : const Color(0xFFE2E8F0),
+          error: isDark ? const Color(0xFFFFB4AB) : const Color(0xFFBA1A1A),
+        );
 
-        // Enhanced on-surface colors for better text contrast
-        onSurface: const Color(0xFFE1E1E1),
-        onSurfaceVariant: const Color(0xFFBDBDBD),
-      );
+    final baseTextTheme = Typography.material2021(
+      platform: defaultTargetPlatform,
+      colorScheme: colorScheme,
+    ).black;
+    final textTheme = baseTextTheme.copyWith(
+      headlineLarge: baseTextTheme.headlineLarge?.copyWith(
+        fontSize: 32,
+        height: 1.12,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.8,
+        color: ink,
+      ),
+      headlineMedium: baseTextTheme.headlineMedium?.copyWith(
+        fontSize: 27,
+        height: 1.16,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.5,
+        color: ink,
+      ),
+      headlineSmall: baseTextTheme.headlineSmall?.copyWith(
+        fontSize: 23,
+        height: 1.2,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.25,
+        color: ink,
+      ),
+      titleLarge: baseTextTheme.titleLarge?.copyWith(
+        fontSize: 20,
+        height: 1.3,
+        fontWeight: FontWeight.w700,
+        color: ink,
+      ),
+      titleMedium: baseTextTheme.titleMedium?.copyWith(
+        fontSize: 16,
+        height: 1.4,
+        fontWeight: FontWeight.w600,
+        color: ink,
+      ),
+      bodyLarge: baseTextTheme.bodyLarge?.copyWith(
+        fontSize: 16,
+        height: 1.5,
+        color: ink,
+      ),
+      bodyMedium: baseTextTheme.bodyMedium?.copyWith(
+        fontSize: 14,
+        height: 1.45,
+        color: ink,
+      ),
+      bodySmall: baseTextTheme.bodySmall?.copyWith(
+        fontSize: 12,
+        height: 1.4,
+        color: muted,
+      ),
+      labelLarge: baseTextTheme.labelLarge?.copyWith(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0,
+      ),
+      labelMedium: baseTextTheme.labelMedium?.copyWith(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.1,
+      ),
+    );
 
-  /// Light theme configuration
-  static ThemeData get light =>
-      _buildTheme(_lightColorScheme, Brightness.light);
-
-  /// Dark theme configuration
-  static ThemeData get dark => _buildTheme(_darkColorScheme, Brightness.dark);
-
-  /// System theme mode based on platform brightness
-  static ThemeMode systemMode(Brightness? platformBrightness) {
-    return platformBrightness == Brightness.dark
-        ? ThemeMode.dark
-        : ThemeMode.light;
-  }
-
-  static ThemeData _buildTheme(ColorScheme colorScheme, Brightness brightness) {
-    final bool isDark = brightness == Brightness.dark;
+    final controlShape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(AppRadii.control),
+    );
 
     return ThemeData(
       useMaterial3: true,
-      colorScheme: colorScheme,
       brightness: brightness,
-
-      // Typography
-      textTheme: _buildTextTheme(colorScheme),
-
-      // App Bar - Enhanced for dark mode
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: canvas,
+      canvasColor: canvas,
+      textTheme: textTheme,
+      visualDensity: VisualDensity.standard,
+      splashFactory: InkSparkle.splashFactory,
       appBarTheme: AppBarTheme(
         elevation: 0,
-        scrolledUnderElevation: isDark ? 2 : 1,
-        backgroundColor: isDark ? colorScheme.surface : colorScheme.surface,
-        surfaceTintColor: isDark ? colorScheme.surfaceTint : null,
-        foregroundColor: colorScheme.onSurface,
-        titleTextStyle: _buildTextTheme(colorScheme).titleLarge?.copyWith(
-          fontWeight: FontWeight.w600,
-          color: colorScheme.onSurface,
-        ),
+        scrolledUnderElevation: 0,
+        backgroundColor: canvas,
+        surfaceTintColor: Colors.transparent,
+        foregroundColor: ink,
+        centerTitle: false,
         systemOverlayStyle: isDark
-            ? SystemUiOverlayStyle.light.copyWith(
-                statusBarColor: Colors.transparent,
-                statusBarBrightness: Brightness.dark,
-              )
-            : SystemUiOverlayStyle.dark.copyWith(
-                statusBarColor: Colors.transparent,
-                statusBarBrightness: Brightness.light,
-              ),
+            ? SystemUiOverlayStyle.light
+            : SystemUiOverlayStyle.dark,
       ),
-
-      // Navigation - Improved dark mode styling
       navigationBarTheme: NavigationBarThemeData(
-        elevation: isDark ? 0 : 3,
-        backgroundColor: isDark
-            ? colorScheme.surfaceContainer
-            : colorScheme.surface,
-        surfaceTintColor: isDark ? colorScheme.surfaceTint : null,
-        indicatorColor: colorScheme.secondaryContainer,
-        shadowColor: isDark ? Colors.black26 : null,
+        height: 72,
+        elevation: 0,
+        backgroundColor: surface,
+        surfaceTintColor: Colors.transparent,
+        indicatorColor: colorScheme.primaryContainer,
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          return IconThemeData(
+            size: 24,
+            color: states.contains(WidgetState.selected) ? accent : muted,
+          );
+        }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface,
-            );
-          }
-          return TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: colorScheme.onSurfaceVariant,
+          return textTheme.labelMedium?.copyWith(
+            color: states.contains(WidgetState.selected) ? ink : muted,
           );
         }),
       ),
-
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        elevation: isDark ? 0 : 3,
-        backgroundColor: isDark
-            ? colorScheme.surfaceContainer
-            : colorScheme.surface,
-        selectedItemColor: colorScheme.primary,
-        unselectedItemColor: colorScheme.onSurfaceVariant,
-        type: BottomNavigationBarType.fixed,
-      ),
-
-      // Buttons - Enhanced contrast for dark mode
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          elevation: isDark ? 2 : 1,
-          shadowColor: isDark ? Colors.black45 : null,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          minimumSize: const Size(64, 44),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadii.md),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.1,
-          ),
-        ),
-      ),
-
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          minimumSize: const Size(64, 44),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadii.md),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.1,
-          ),
+          minimumSize: const Size(48, 52),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          shape: controlShape,
+          textStyle: textTheme.labelLarge,
         ),
       ),
-
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          minimumSize: const Size(64, 44),
-          side: BorderSide(color: colorScheme.outline, width: isDark ? 1.5 : 1),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadii.md),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.1,
-          ),
+          minimumSize: const Size(48, 52),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          side: BorderSide(color: outline),
+          shape: controlShape,
+          textStyle: textTheme.labelLarge,
         ),
       ),
-
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          minimumSize: const Size(64, 44),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadii.md),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.1,
-          ),
+          minimumSize: const Size(48, 48),
+          shape: controlShape,
+          textStyle: textTheme.labelLarge,
         ),
       ),
-
-      // FAB - Enhanced for dark mode
-      floatingActionButtonTheme: FloatingActionButtonThemeData(
-        elevation: isDark ? 4 : 3,
-        focusElevation: isDark ? 6 : 4,
-        hoverElevation: isDark ? 6 : 4,
-        highlightElevation: isDark ? 8 : 6,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.lg),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          shape: const CircleBorder(),
         ),
       ),
-
-      // Cards - Better dark mode appearance
-      cardTheme: CardThemeData(
-        elevation: isDark ? 2 : 1,
-        margin: const EdgeInsets.all(0),
-        color: isDark ? colorScheme.surfaceContainerLow : null,
-        surfaceTintColor: isDark ? colorScheme.surfaceTint : null,
-        shadowColor: isDark ? Colors.black26 : null,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.md),
-        ),
-        clipBehavior: Clip.antiAlias,
-      ),
-
-      // Chips - Improved dark mode styling
-      chipTheme: ChipThemeData(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-        backgroundColor: isDark ? colorScheme.surfaceContainerHigh : null,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.xs),
-        ),
-        side: BorderSide(
-          color: isDark
-              ? colorScheme.outline.withValues(alpha: 0.7)
-              : colorScheme.outline,
-          width: isDark ? 0.8 : 1,
-        ),
-        labelStyle: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: colorScheme.onSurface,
-        ),
-      ),
-
-      // Dialogs and Sheets - Enhanced dark mode
-      dialogTheme: DialogThemeData(
-        elevation: isDark ? 8 : 6,
-        backgroundColor: isDark ? colorScheme.surfaceContainerHigh : null,
-        surfaceTintColor: isDark ? colorScheme.surfaceTint : null,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.xl),
-        ),
-        titleTextStyle: _buildTextTheme(colorScheme).headlineSmall?.copyWith(
-          fontWeight: FontWeight.w600,
-          color: colorScheme.onSurface,
-        ),
-        contentTextStyle: _buildTextTheme(
-          colorScheme,
-        ).bodyMedium?.copyWith(color: colorScheme.onSurface),
-      ),
-
-      bottomSheetTheme: BottomSheetThemeData(
-        elevation: isDark ? 12 : 8,
-        modalElevation: isDark ? 12 : 8,
-        backgroundColor: isDark ? colorScheme.surfaceContainerLow : null,
-        surfaceTintColor: isDark ? colorScheme.surfaceTint : null,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(AppRadii.xl),
-          ),
-        ),
-        clipBehavior: Clip.antiAlias,
-      ),
-
-      // Snackbar - Better dark mode contrast
-      snackBarTheme: SnackBarThemeData(
-        elevation: isDark ? 8 : 6,
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: isDark ? colorScheme.inverseSurface : null,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.sm),
-        ),
-        contentTextStyle: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: colorScheme.onInverseSurface,
-        ),
-      ),
-
-      // Form inputs - Significantly improved for dark mode
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: isDark
-            ? colorScheme.surfaceContainerHigh.withValues(alpha: 0.6)
-            : colorScheme.surfaceContainerHighest,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.sm),
-          borderSide: BorderSide(
-            color: isDark
-                ? colorScheme.outline.withValues(alpha: 0.7)
-                : colorScheme.outline,
-            width: isDark ? 1.2 : 1,
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.sm),
-          borderSide: BorderSide(
-            color: isDark
-                ? colorScheme.outline.withValues(alpha: 0.7)
-                : colorScheme.outline,
-            width: isDark ? 1.2 : 1,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.sm),
-          borderSide: BorderSide(color: colorScheme.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.sm),
-          borderSide: BorderSide(color: colorScheme.error),
-        ),
+        fillColor: surface,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 16,
         ),
-        labelStyle: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: colorScheme.onSurfaceVariant,
+        hintStyle: textTheme.bodyLarge?.copyWith(color: muted),
+        helperStyle: textTheme.bodySmall,
+        errorStyle: textTheme.bodySmall?.copyWith(color: colorScheme.error),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadii.control),
+          borderSide: BorderSide(color: outline),
         ),
-        hintStyle: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-          color: colorScheme.onSurfaceVariant.withValues(
-            alpha: isDark ? 0.7 : 0.6,
-          ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadii.control),
+          borderSide: BorderSide(color: outline),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadii.control),
+          borderSide: BorderSide(color: accent, width: 1.6),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadii.control),
+          borderSide: BorderSide(color: colorScheme.error),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadii.control),
+          borderSide: BorderSide(color: colorScheme.error, width: 1.6),
         ),
       ),
-
-      // List tiles - Enhanced dark mode
-      listTileTheme: ListTileThemeData(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        minVerticalPadding: 8,
-        tileColor: isDark ? colorScheme.surfaceContainerLowest : null,
+      searchBarTheme: SearchBarThemeData(
+        backgroundColor: WidgetStatePropertyAll(surface),
+        surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+        elevation: const WidgetStatePropertyAll(0),
+        side: WidgetStatePropertyAll(BorderSide(color: outline)),
+        shape: WidgetStatePropertyAll(controlShape),
+        padding: const WidgetStatePropertyAll(
+          EdgeInsets.symmetric(horizontal: 16),
+        ),
+        hintStyle: WidgetStatePropertyAll(
+          textTheme.bodyLarge?.copyWith(color: muted),
+        ),
+        textStyle: WidgetStatePropertyAll(textTheme.bodyLarge),
+      ),
+      cardTheme: CardThemeData(
+        elevation: 0,
+        color: surface,
+        surfaceTintColor: Colors.transparent,
+        margin: EdgeInsets.zero,
+        clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.sm),
-        ),
-        titleTextStyle: _buildTextTheme(colorScheme).bodyLarge?.copyWith(
-          fontWeight: FontWeight.w500,
-          color: colorScheme.onSurface,
-        ),
-        subtitleTextStyle: _buildTextTheme(
-          colorScheme,
-        ).bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-      ),
-
-      // Switches and checkboxes - Improved dark mode
-      switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return colorScheme.onPrimary;
-          }
-          return isDark
-              ? colorScheme.surfaceContainerHighest
-              : colorScheme.outline;
-        }),
-        trackColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return colorScheme.primary;
-          }
-          return isDark
-              ? colorScheme.surfaceContainerHigh
-              : colorScheme.surfaceContainerHighest;
-        }),
-      ),
-
-      checkboxTheme: CheckboxThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-        side: BorderSide(
-          color: isDark
-              ? colorScheme.outline.withValues(alpha: 0.8)
-              : colorScheme.outline,
-          width: 2,
+          borderRadius: BorderRadius.circular(AppRadii.surface),
+          side: BorderSide(color: outline),
         ),
       ),
-
-      radioTheme: RadioThemeData(
-        fillColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return colorScheme.primary;
-          }
-          return isDark
-              ? colorScheme.outline.withValues(alpha: 0.8)
-              : colorScheme.outline;
-        }),
-      ),
-
-      // Dividers - Better dark mode visibility
-      dividerTheme: DividerThemeData(
-        color: isDark
-            ? colorScheme.outlineVariant.withValues(alpha: 0.8)
-            : colorScheme.outlineVariant,
-        thickness: 1,
-        space: 1,
-      ),
-
-      // Tooltips - Enhanced for dark mode
-      tooltipTheme: TooltipThemeData(
-        decoration: BoxDecoration(
-          color: isDark
-              ? colorScheme.inverseSurface.withValues(alpha: 0.95)
-              : colorScheme.inverseSurface,
-          borderRadius: BorderRadius.circular(AppRadii.xs),
-          boxShadow: isDark
-              ? [
-                  const BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
-                  ),
-                ]
-              : null,
+      dialogTheme: DialogThemeData(
+        elevation: 0,
+        backgroundColor: surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadii.surface),
         ),
-        textStyle: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: colorScheme.onInverseSurface,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       ),
-
-      // Tab bar - Improved dark mode
-      tabBarTheme: TabBarThemeData(
-        labelColor: colorScheme.primary,
-        unselectedLabelColor: colorScheme.onSurfaceVariant,
-        labelStyle: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.1,
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: isDark
+            ? const Color(0xFFE8EDF5)
+            : const Color(0xFF1B2430),
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: isDark ? const Color(0xFF111722) : Colors.white,
         ),
-        unselectedLabelStyle: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          letterSpacing: 0.1,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadii.control),
         ),
-        indicator: UnderlineTabIndicator(
-          borderSide: BorderSide(color: colorScheme.primary, width: 2),
-        ),
-        overlayColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.hovered)) {
-            return colorScheme.onSurface.withValues(alpha: 0.08);
-          }
-          if (states.contains(WidgetState.pressed)) {
-            return colorScheme.onSurface.withValues(alpha: 0.12);
-          }
-          return null;
-        }),
       ),
-
-      // Enhanced focus and interaction colors for dark mode
-      focusColor: colorScheme.tertiary.withValues(alpha: isDark ? 0.16 : 0.12),
-      hoverColor: colorScheme.onSurface.withValues(alpha: isDark ? 0.12 : 0.08),
-      splashColor: colorScheme.onSurface.withValues(
-        alpha: isDark ? 0.16 : 0.12,
-      ),
-      highlightColor: colorScheme.onSurface.withValues(
-        alpha: isDark ? 0.16 : 0.12,
-      ),
-
-      // Page transitions
+      dividerTheme: DividerThemeData(color: outline, thickness: 1, space: 1),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
-          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
+          TargetPlatform.iOS: FadeForwardsPageTransitionsBuilder(),
         },
       ),
-
-      // Scaffold background - Ensure proper dark mode background
-      scaffoldBackgroundColor: isDark ? colorScheme.surface : null,
-      canvasColor: isDark ? colorScheme.surface : null,
     );
   }
-
-  static TextTheme _buildTextTheme(ColorScheme colorScheme) {
-    return TextTheme(
-      // Display styles
-      displayLarge: TextStyle(
-        fontSize: 57,
-        height: 1.12,
-        letterSpacing: -0.25,
-        fontWeight: FontWeight.w400,
-        color: colorScheme.onSurface,
-      ),
-      displayMedium: TextStyle(
-        fontSize: 45,
-        height: 1.16,
-        letterSpacing: 0,
-        fontWeight: FontWeight.w400,
-        color: colorScheme.onSurface,
-      ),
-      displaySmall: TextStyle(
-        fontSize: 36,
-        height: 1.22,
-        letterSpacing: 0,
-        fontWeight: FontWeight.w400,
-        color: colorScheme.onSurface,
-      ),
-
-      // Headline styles
-      headlineLarge: TextStyle(
-        fontSize: 32,
-        height: 1.25,
-        letterSpacing: 0,
-        fontWeight: FontWeight.w600,
-        color: colorScheme.onSurface,
-      ),
-      headlineMedium: TextStyle(
-        fontSize: 28,
-        height: 1.29,
-        letterSpacing: 0,
-        fontWeight: FontWeight.w600,
-        color: colorScheme.onSurface,
-      ),
-      headlineSmall: TextStyle(
-        fontSize: 24,
-        height: 1.33,
-        letterSpacing: 0,
-        fontWeight: FontWeight.w600,
-        color: colorScheme.onSurface,
-      ),
-
-      // Title styles
-      titleLarge: TextStyle(
-        fontSize: 22,
-        height: 1.27,
-        letterSpacing: 0,
-        fontWeight: FontWeight.w600,
-        color: colorScheme.onSurface,
-      ),
-      titleMedium: TextStyle(
-        fontSize: 16,
-        height: 1.50,
-        letterSpacing: 0.15,
-        fontWeight: FontWeight.w600,
-        color: colorScheme.onSurface,
-      ),
-      titleSmall: TextStyle(
-        fontSize: 14,
-        height: 1.43,
-        letterSpacing: 0.1,
-        fontWeight: FontWeight.w600,
-        color: colorScheme.onSurface,
-      ),
-
-      // Body styles
-      bodyLarge: TextStyle(
-        fontSize: 16,
-        height: 1.50,
-        letterSpacing: 0.5,
-        fontWeight: FontWeight.w400,
-        color: colorScheme.onSurface,
-      ),
-      bodyMedium: TextStyle(
-        fontSize: 14,
-        height: 1.43,
-        letterSpacing: 0.25,
-        fontWeight: FontWeight.w400,
-        color: colorScheme.onSurface,
-      ),
-      bodySmall: TextStyle(
-        fontSize: 12,
-        height: 1.33,
-        letterSpacing: 0.4,
-        fontWeight: FontWeight.w400,
-        color: colorScheme.onSurfaceVariant,
-      ),
-
-      // Label styles
-      labelLarge: TextStyle(
-        fontSize: 14,
-        height: 1.43,
-        letterSpacing: 0.1,
-        fontWeight: FontWeight.w500,
-        color: colorScheme.onSurface,
-      ),
-      labelMedium: TextStyle(
-        fontSize: 12,
-        height: 1.33,
-        letterSpacing: 0.5,
-        fontWeight: FontWeight.w500,
-        color: colorScheme.onSurface,
-      ),
-      labelSmall: TextStyle(
-        fontSize: 11,
-        height: 1.45,
-        letterSpacing: 0.5,
-        fontWeight: FontWeight.w500,
-        color: colorScheme.onSurface,
-      ),
-    );
-  }
-}
-
-/// Spacing tokens following 4dp grid system
-class AppSpacing {
-  static const double xs = 4.0;
-  static const double sm = 8.0;
-  static const double md = 12.0;
-  static const double lg = 16.0;
-  static const double xl = 20.0;
-  static const double xxl = 24.0;
-  static const double xxxl = 32.0;
-}
-
-/// Border radius tokens
-class AppRadii {
-  static const double xs = 8.0;
-  static const double sm = 12.0;
-  static const double md = 16.0;
-  static const double lg = 20.0;
-  static const double xl = 24.0;
-}
-
-/// Animation duration tokens
-class AppDurations {
-  static const Duration fast = Duration(milliseconds: 120);
-  static const Duration base = Duration(milliseconds: 200);
-  static const Duration slow = Duration(milliseconds: 300);
-}
-
-/// Animation curves
-class AppCurves {
-  static const Curve easeOutCubic = Curves.easeOutCubic;
-  static const Curve easeInOutCubic = Curves.easeInOutCubic;
-  static const Curve overshoot = Curves.elasticOut;
-}
-
-/// Enhanced semantic colors with better dark mode support
-class SemanticColors {
-  const SemanticColors();
-
-  // Success colors
-  Color get success => const Color(0xFF4CAF50);
-  Color get onSuccess => const Color(0xFFFFFFFF);
-  Color get successContainer => const Color(0xFFE8F5E8);
-  Color get onSuccessContainer => const Color(0xFF1B5E20);
-
-  // Dark mode success colors
-  Color get successDark => const Color(0xFF81C784);
-  Color get onSuccessDark => const Color(0xFF000000);
-  Color get successContainerDark => const Color(0xFF2E7D32);
-  Color get onSuccessContainerDark => const Color(0xFFE8F5E8);
-
-  // Warning colors
-  Color get warning => const Color(0xFFFF9800);
-  Color get onWarning => const Color(0xFFFFFFFF);
-  Color get warningContainer => const Color(0xFFFFF3E0);
-  Color get onWarningContainer => const Color(0xFFE65100);
-
-  // Dark mode warning colors
-  Color get warningDark => const Color(0xFFFFB74D);
-  Color get onWarningDark => const Color(0xFF000000);
-  Color get warningContainerDark => const Color(0xFFFF6F00);
-  Color get onWarningContainerDark => const Color(0xFFFFF3E0);
-
-  // Info colors
-  Color get info => const Color(0xFF2196F3);
-  Color get onInfo => const Color(0xFFFFFFFF);
-  Color get infoContainer => const Color(0xFFE3F2FD);
-  Color get onInfoContainer => const Color(0xFF0D47A1);
-
-  // Dark mode info colors
-  Color get infoDark => const Color(0xFF64B5F6);
-  Color get onInfoDark => const Color(0xFF000000);
-  Color get infoContainerDark => const Color(0xFF1565C0);
-  Color get onInfoContainerDark => const Color(0xFFE3F2FD);
-}
-
-/// Extension methods for easy access to theme tokens
-extension ThemeExtensions on BuildContext {
-  /// Access spacing tokens
-  AppSpacing get spacings => AppSpacing();
-
-  /// Access radius tokens
-  AppRadii get radii => AppRadii();
-
-  /// Access duration tokens
-  AppDurations get durations => AppDurations();
-
-  /// Access animation curves
-  AppCurves get curves => AppCurves();
-
-  /// Access semantic colors with dark mode support
-  SemanticColors get semanticColors => const SemanticColors();
-
-  /// Check if high contrast is enabled
-  bool get isHighContrast => MediaQuery.highContrastOf(this);
-
-  /// Get text scale factor
-  double get textScaleFactor => MediaQuery.textScalerOf(this).scale(1.0);
-
-  /// Check if dark mode is active
-  bool get isDarkMode => Theme.of(this).brightness == Brightness.dark;
 }

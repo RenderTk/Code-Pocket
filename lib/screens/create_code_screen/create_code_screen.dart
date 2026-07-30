@@ -2,10 +2,11 @@ import 'package:code_pocket/providers/codes_provider.dart';
 import 'package:code_pocket/providers/selected_code_type_provider.dart';
 import 'package:code_pocket/screens/code_preview_screen/code_preview_screen.dart';
 import 'package:code_pocket/screens/create_code_screen/widgets/code_types_buttons.dart';
+import 'package:code_pocket/themes/app_theme.dart';
+import 'package:code_pocket/utils/tactile_feedback.dart';
+import 'package:code_pocket/widgets/app_page_header.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class CreateCodeScreen extends ConsumerStatefulWidget {
   const CreateCodeScreen({super.key});
@@ -16,177 +17,177 @@ class CreateCodeScreen extends ConsumerStatefulWidget {
 
 class _CreateCodeScreenState extends ConsumerState<CreateCodeScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _dataController = TextEditingController();
+  final _titleController = TextEditingController();
+  final _dataController = TextEditingController();
+  final _titleFocusNode = FocusNode();
+  final _dataFocusNode = FocusNode();
 
   @override
   void dispose() {
-    super.dispose();
     _titleController.dispose();
     _dataController.dispose();
+    _titleFocusNode.dispose();
+    _dataFocusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleGenerate(CodeType codeType) async {
+    if (!_formKey.currentState!.validate()) return;
+
+    FocusManager.instance.primaryFocus?.unfocus();
+    selectionHaptic();
+
+    final didFinish = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CodePreviewScreen(
+          codeType: codeType,
+          title: _titleController.text.trim(),
+          data: _dataController.text.trim(),
+        ),
+      ),
+    );
+
+    if (!mounted || didFinish != true) return;
+    _formKey.currentState?.reset();
+    _titleFocusNode.requestFocus();
+  }
+
+  String? _validateTitle(String? value, CodeType codeType) {
+    final title = value?.trim() ?? '';
+    if (title.isEmpty) return 'Enter a name for this ${codeType.label}.';
+    if (ref.read(codesProvider.notifier).exists(title)) {
+      return 'A saved code already uses this name.';
+    }
+    return null;
+  }
+
+  String? _validateData(String? value, CodeType codeType) {
+    final data = value?.trim() ?? '';
+    if (data.isEmpty) return 'Enter the value you want to encode.';
+    if (data.length > codeType.maxLength) {
+      return '${codeType.label}s support up to ${codeType.maxLength} characters.';
+    }
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final selectedCodeType = ref.watch(selectedCodeTypeProvider);
-    final hintTextFieldName = switch (selectedCodeType) {
-      CodeType.qrCode => 'My QR code name here',
-      CodeType.barCode => 'My barcode name here',
-    };
-    final generateCodeLable = switch (selectedCodeType) {
-      CodeType.qrCode => 'Generate QR Code',
-      CodeType.barCode => 'Generate Bar Code',
-    };
-    final generateCodeIcon = switch (selectedCodeType) {
-      CodeType.qrCode => FontAwesomeIcons.qrcode,
-      CodeType.barCode => FontAwesomeIcons.barcode,
-    };
 
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
+    return ColoredBox(
+      color: theme.scaffoldBackgroundColor,
+      child: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: SafeArea(
+          top: false,
+          child: Form(
+            key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                PlatformText(
-                  'Code Type',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                const CodeTypeButtons(),
-                const SizedBox(height: 16),
-                PlatformText(
-                  "Title",
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                // Name TextField
-                PlatformTextFormField(
-                  controller: _titleController,
-                  autocorrect: false,
-                  hintText: hintTextFieldName,
-                  cursorColor: Theme.of(context).colorScheme.primary,
-                  material: (context, platform) => MaterialTextFormFieldData(
-                    cursorColor: Theme.of(context).colorScheme.primary,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.sm,
+                      AppSpacing.lg,
+                      AppSpacing.md,
                     ),
-                  ),
-                  cupertino: (context, platform) => CupertinoTextFormFieldData(
-                    cursorColor: Theme.of(context).colorScheme.primary,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter a name';
-                    }
-                    if (ref.read(codesProvider.notifier).exists(value.trim())) {
-                      return 'A ${selectedCodeType == CodeType.qrCode ? 'QR Code' : 'Bar Code'} with this title already exists';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                PlatformText(
-                  "URL, Text or Data",
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                // Data TextField
-                PlatformTextFormField(
-                  controller: _dataController,
-                  autocorrect: false,
-                  hintText: "Enter your URL, text or data here",
-                  minLines: 5,
-                  maxLines: 10,
-                  cursorColor: Theme.of(context).colorScheme.primary,
-                  keyboardType: TextInputType.multiline,
-                  material: (context, platform) => MaterialTextFormFieldData(
-                    cursorColor: Theme.of(context).colorScheme.primary,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  cupertino: (context, platform) => CupertinoTextFormFieldData(
-                    cursorColor: Theme.of(context).colorScheme.primary,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter a URL, text or data';
-                    }
-                    if (value.length > 100 &&
-                        selectedCodeType == CodeType.barCode) {
-                      return 'Barcodes support up to 100 characters only';
-                    }
-                    if (value.length > 3000 &&
-                        selectedCodeType == CodeType.qrCode) {
-                      return 'QR Codes support up to 3000 characters only';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 25),
-
-                // Generate Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 80,
-                  child: PlatformElevatedButton(
-                    onPressed: () async {
-                      if (!_formKey.currentState!.validate()) {
-                        return;
-                      }
-
-                      // Close the keyboard
-                      FocusScope.of(context).unfocus();
-
-                      // Navigate to the code preview screen
-                      final result = await Navigator.push<bool>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return CodePreviewScreen(
-                              codeType: selectedCodeType,
-                              title: _titleController.text,
-                              data: _dataController.text,
-                            );
-                          },
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 680),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const AppPageHeader(
+                              title: 'Create a code',
+                              description:
+                                  'Turn a link, message, or identifier into a code you can save and share.',
+                            ),
+                            const SizedBox(height: AppSpacing.xl),
+                            const _FieldLabel(
+                              label: 'Format',
+                              helper: 'Choose how the value should be encoded.',
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            const CodeTypeButtons(),
+                            const SizedBox(height: AppSpacing.xl),
+                            const _FieldLabel(
+                              label: 'Name',
+                              helper:
+                                  'Use a name that will be easy to find in your library.',
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            TextFormField(
+                              controller: _titleController,
+                              focusNode: _titleFocusNode,
+                              autocorrect: false,
+                              textCapitalization: TextCapitalization.sentences,
+                              textInputAction: TextInputAction.next,
+                              decoration: InputDecoration(
+                                hintText: selectedCodeType.titleHint,
+                              ),
+                              validator: (value) =>
+                                  _validateTitle(value, selectedCodeType),
+                              onFieldSubmitted: (_) =>
+                                  _dataFocusNode.requestFocus(),
+                            ),
+                            const SizedBox(height: AppSpacing.xl),
+                            _FieldLabel(
+                              label: 'Content',
+                              helper: selectedCodeType == CodeType.qrCode
+                                  ? 'QR codes can store links, messages, and longer text.'
+                                  : 'Code 128 barcodes work best with short identifiers.',
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            TextFormField(
+                              key: ValueKey(selectedCodeType),
+                              controller: _dataController,
+                              focusNode: _dataFocusNode,
+                              autocorrect: false,
+                              keyboardType: TextInputType.multiline,
+                              minLines: selectedCodeType == CodeType.qrCode
+                                  ? 5
+                                  : 3,
+                              maxLines: 8,
+                              maxLength: selectedCodeType.maxLength,
+                              decoration: InputDecoration(
+                                hintText: selectedCodeType.dataHint,
+                                alignLabelWithHint: true,
+                              ),
+                              validator: (value) =>
+                                  _validateData(value, selectedCodeType),
+                            ),
+                          ],
                         ),
-                      );
-
-                      if (result == true) {
-                        _titleController.clear();
-                        _dataController.clear();
-                      }
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(generateCodeIcon, size: 20),
-                        const SizedBox(width: 12),
-                        PlatformText(generateCodeLable),
-                      ],
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.xs,
+                    AppSpacing.lg,
+                    AppSpacing.sm,
+                  ),
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 680),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: () => _handleGenerate(selectedCodeType),
+                          icon: Icon(selectedCodeType.icon),
+                          label: Text(selectedCodeType.generateLabel),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -195,6 +196,32 @@ class _CreateCodeScreenState extends ConsumerState<CreateCodeScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _FieldLabel extends StatelessWidget {
+  const _FieldLabel({required this.label, required this.helper});
+
+  final String label;
+  final String helper;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: theme.textTheme.titleMedium),
+        const SizedBox(height: AppSpacing.xxs),
+        Text(
+          helper,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
     );
   }
 }

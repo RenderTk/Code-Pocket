@@ -14,7 +14,19 @@ class _CodeDataColums {
   static const createdAt = "created_at";
 }
 
-class DbService {
+abstract interface class CodesStore {
+  Future<int> insertCode(CodeData code);
+
+  Future<List<CodeData>> getAllCodes();
+
+  Future<void> deleteCode(int id);
+
+  Future<void> deleteAllCodes();
+
+  Future<void> updateCode(CodeData code);
+}
+
+class DbService implements CodesStore {
   static final DbService instance = DbService._instance();
   static Database? _database;
 
@@ -44,6 +56,7 @@ class DbService {
   ''');
   }
 
+  @override
   Future<int> insertCode(CodeData code) async {
     Database db = await instance.db;
     try {
@@ -57,6 +70,7 @@ class DbService {
     }
   }
 
+  @override
   Future<List<CodeData>> getAllCodes() async {
     Database db = await instance.db;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -71,6 +85,7 @@ class DbService {
     });
   }
 
+  @override
   Future<void> deleteCode(int id) async {
     Database db = await instance.db;
     await db.delete(
@@ -80,11 +95,13 @@ class DbService {
     );
   }
 
+  @override
   Future<void> deleteAllCodes() async {
     Database db = await instance.db;
     await db.delete(_TableNames.codeData);
   }
 
+  @override
   Future<void> updateCode(CodeData code) async {
     Database db = await instance.db;
     await db.update(
